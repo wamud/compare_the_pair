@@ -18,26 +18,23 @@ class Distribution():
                  n_qubits=1, 
                  rejection_threshold=0.5,
                  resampler_a=np.sqrt(0.9),
-                 resampler_h=np.sqrt(0.1)):
+                 ):
         
         
-        self.vals_per_qubit = 2
         if distribution_generator is not None:
             self.points, self.weights = distribution_generator(n_points, n_qubits)
         else:
             self.points, self.weights = self.random_distribution(n_points=n_points)
         
         self.resampler_a = resampler_a
-        self.resampler_h = resampler_h
         
+        self.resampler = LiuWestResampler(a=self.resampler_a, postselect=False)
         self.n_qubits = n_qubits
         self.n_points = len(self.weights)
         self.rejection_threshold = rejection_threshold
         self.covariance_matrix = None
         
         
-        # Inversion array, flips then measures
-        self.inversion_arr = np.zeros(self.n_qubits, dtype=int)
         
     def update(self, measurement_data, resample=True):
         self.update_estimate(measurement_data)
@@ -57,8 +54,7 @@ class Distribution():
 
         self.renormalise()
         self.points = self.points.reshape(len(self.points), 1)
-        resampler = LiuWestResampler(postselect=False)
-        self.weights, self.points = resampler(None, self.weights, self.points)
+        self.weights, self.points = self.resampler(None, self.weights, self.points)
 
         self.points = self.points.reshape(self.points.shape[0]) 
         
@@ -106,7 +102,6 @@ class Distribution():
         
         # Calculate number of effective particles        
         if self.n_eff() < self.n_points * self.rejection_threshold:
-            print("RESAMPLE")
             self.resample()
     
     
