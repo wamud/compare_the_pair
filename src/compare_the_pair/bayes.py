@@ -17,14 +17,14 @@ class Distribution():
                  n_points=100,
                  n_qubits=1, 
                  rejection_threshold=0.5,
-                 resampler_a=np.sqrt(0.9),
+                 resampler_a=np.sqrt(0.6),
                  ):
         
         
         if distribution_generator is not None:
             self.points, self.weights = distribution_generator(n_points, n_qubits)
         else:
-            self.points, self.weights = self.random_distribution(n_points=n_points)
+            self.points, self.weights = self.linear_distribution(n_points=n_points)
         
         self.resampler_a = resampler_a
         
@@ -57,13 +57,19 @@ class Distribution():
         self.weights, self.points = self.resampler(None, self.weights, self.points)
 
         self.points = self.points.reshape(self.points.shape[0]) 
+        for i, val in enumerate(self.points):
+            if val < 0:
+                self.points[i] = (-val) ** 0.5 
         
+            if val > 1:
+                self.points[i] = 1 - (val - 1) ** 0.5 
+
         
     def update_estimate(self, measurement_outcomes):
         '''
             Calculate the new weight from the previous one
         '''        
-        for state in enumerate(measurement_outcomes):
+        for state in measurement_outcomes:
             self.conditional_resample()
             if state == 1:
                 self.weights *= self.points 
@@ -75,7 +81,7 @@ class Distribution():
         return np.sum(self.points * self.weights)
             
         
-    def random_distribution(self, n_points, start=0, stop=0.05):
+    def random_distribution(self, n_points, start=0, stop=1):
 
         points = (np.random.rand(n_points) * (stop - start) + start)
         
@@ -103,26 +109,17 @@ class Distribution():
         # Calculate number of effective particles        
         if self.n_eff() < self.n_points * self.rejection_threshold:
             self.resample()
-    
-    
         
-    def linear_distribution(self, step, start=0, stop=1, n_qubits=1):
+    def linear_distribution(self, n_points, start=0, stop=1, n_qubits=1):
         '''
             Simple linear, evenly weighted distribution
         '''
-        points = []
+        step = (stop - start) / (n_points - 1)    
         
-        position = start
-        while position <= stop:
-            points.append(position)
-            position += step
-        
-        if stop > points[-1]:
-            points.append(stop)
+        points = np.array([i * step for i in range(n_points)]) + start 
             
         weights = np.array([1 / len(points)] * len(points))
         
         points = np.array(points)
         
         return points, weights
-
