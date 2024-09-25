@@ -2,6 +2,7 @@ import pickle
 import inspect
 from scipy.optimize import minimize
 from IPython.display import display, Math
+import math
 import re
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
@@ -154,6 +155,7 @@ def plot_thresholds(mylist, roorder, unroorder, romind = 2, unromind = 2, minp =
 
     for rot, order, maxd in zip(rotations, orders, maxds):
         fig, ax = plt.subplots(1, 1, figsize=(5.4, 4.8))
+        ax.grid(zorder = 0)
         plt.tight_layout(pad=3.0)
 
         for mem in 'xz':
@@ -183,7 +185,7 @@ def plot_thresholds(mylist, roorder, unroorder, romind = 2, unromind = 2, minp =
 
         second_legend = ax.legend(handles=marker_legend_handles, title='Memory:', loc='upper left')
         ax.add_artist(second_legend)
-        ax.grid(False, which='both')
+        # ax.grid(True, which='both', zorder = 0)
 
         ax.set_title(f'Rotated') if rot == 'ro' else ax.set_title(f'Unrotated')
         
@@ -257,8 +259,8 @@ def sinterplotthreshold_v2(ax,mylist,order,rot,mem,num_rounds,find_pL_per,romind
 
             
 
-            # (not (0.0056<=s.json_metadata['p']<=0.0058) if not plot_values_near_005 else True) and
-            # (not (0.0050<s.json_metadata['p']<0.0055) if not plot_values_near_005 else True) and
+            (not (0.0056<=s.json_metadata['p']<=0.0058) if not plot_values_near_005 else True) and
+            (not (0.0050<s.json_metadata['p']<0.0055) if not plot_values_near_005 else True) and
             (s.json_metadata['b']==mem1 or s.json_metadata['b']==mem2) and
 
             (rot in (s.json_metadata.get('ro'), s.json_metadata.get('rt'))) and
@@ -917,16 +919,6 @@ def give_p_values(noise_model):
 
     return(pvalues)
 
-
-
-def give_stats_list(noise_model):
-
-    stats = f'{noise_model}_stats' # selected CNOT orders for paper (stats down to p = 0.0005)
-
-    with open(f'pickled_stats/{stats}.pickle', 'rb') as file:
-        mylist = pickle.load(file)
-
-    return mylist
 
 
 
