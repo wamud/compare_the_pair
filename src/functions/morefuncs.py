@@ -1,3 +1,4 @@
+import stim
 import re
 import os
 
@@ -248,7 +249,7 @@ def add_idling_errors_and_save_circuit(thecircuit, b, d, p, ro, x, z):
 
     modified_file_contents = process_file(path) # adds some idling errors 
     
-    newpath = f"circuits/d={d},p={p},b={b},r=3d,ro={ro},o={x[0]}{x[1]}{x[2]}{x[3]}{z[0]}{z[1]}{z[2]}{z[3]},idl=y.stim"
+    newpath = f"circuits/SD/{b}/d={d},p={p},b={b},r=3d,ro={ro},o={x[0]}{x[1]}{x[2]}{x[3]}{z[0]}{z[1]}{z[2]}{z[3]},idl=y.stim"
 
     with open(newpath, 'w') as file:
         file.writelines(modified_file_contents)
@@ -257,3 +258,14 @@ def add_idling_errors_and_save_circuit(thecircuit, b, d, p, ro, x, z):
 
     if os.path.exists(path):
         os.remove(path)
+
+
+def make_CXSI_circuit(b, d, p, ro, x, z):
+    
+    newpath = f"circuits/SD/{b}/d={d},p={p},b={b},r=3d,ro={ro},o={x[0]}{x[1]}{x[2]}{x[3]}{z[0]}{z[1]}{z[2]}{z[3]},idl=y.stim" # needs to be the same as 'newpath' in add_idling_errors_and_save_circuit
+    
+    
+    CXSI_file_path = f"circuits/CXSI/{b}/d={d},p={p},noise=CXSI,b={b},r=3d,ro={ro},o={x[0]}{x[1]}{x[2]}{x[3]}{z[0]}{z[1]}{z[2]}{z[3]},idl=y.stim"
+    modify_error_probabilities(newpath,CXSI_file_path)
+    modify_x_error_arguments(CXSI_file_path,CXSI_file_path)
+    modify_depol1_argument(CXSI_file_path,CXSI_file_path)

@@ -162,7 +162,7 @@ def plot_thresholds(mylist, roorder, unroorder, romind = 2, unromind = 2, minp =
             plt.gca().set_prop_cycle(None)  # reset the colour cycle
             sinterplotthreshold_v2(ax,mylist,order,rot,mem,'3d',find_pL_per,romind, unromind)
             if rot == 'unro':
-                ax.margins(y = 0.15)
+                # ax.margins(y = 0.15)
                 unro_y_limits = ax.get_ylim()
                 # ax.set_ylim(new_lower_lim, new_upper_lim)
                 # unro_y_limits = ax.get_ylim()
@@ -194,7 +194,7 @@ def plot_thresholds(mylist, roorder, unroorder, romind = 2, unromind = 2, minp =
 
 
 
-def sinterplotthreshold_v2(ax,mylist,order,rot,mem,num_rounds,find_pL_per,romind = 2, unromind = 2, maxd=100,maxp=1,minp=0.001,plot_values_near_005 = False):
+def sinterplotthreshold_v2(ax,mylist,order,rot,mem,num_rounds,find_pL_per,romind = 2, unromind = 2, maxd=100,maxp=1, minp=0, plot_values_near_005 = False):
     # v2 calculates what the start colour for each graph should be based on romind (rotated code, minimum distance) and unromind (unrotated code minimum distance) to make the same colours for the same distances
 
     # sinter.plot_error_rate: https://github.com/quantumlib/Stim/wiki/Sinter-v1.12-Python-API-Reference#sinter.plot_error_rate:
@@ -1334,489 +1334,6 @@ def plot_memory_times(mylist, b, roorder, unroorder, ps = None, romind = 2, unro
 
 
 
-def fit_scaling_and_plot(combined_list, distances, basis, roorder, unroorder, romind = 2, romaxd = 1000, unromind = 2, unromaxd = 1000, uncertainty_weighting_option = 2, optional_plot = True):
-
-    # In paper used romind = 8, unromind = 6, (distances below this didn't fit scaling)
-    # romaxd = 22, unromaxd = 17  (didn't have enough data for distances above these)
-
-    equation = r"\text{Fitting to:}\ \ \ p_L = \alpha \left( p/\beta \right)^{\gamma d\ -\ \delta}"
-    display(Math(equation))
-
-    # uncertainty_weighting_option 
-    # option 1: weight each point based on its uncertainty in subsequent calculations
-
-    # Other option, considering that using option 1 means your function fits will be dragged to fit low distances and low error rates because these are the points you have the most data for with the lowest uncertainty. This biases the fit to not be as relevant to higher distances and lower p values:
-    # 2: fit lines as if all points have equal weight but still propagate the uncertainty through into the fit parameters, meaning they have larger uncertainty. This fits better to the points at lower p and with high d, points which we care about more, but the sacrifice is that it increases the uncertainty.
-
-
-
-    # Split into even and odd distances to compare:
-    my_even_list = [] # will contain whole element
-    my_odd_list = []
-    
-    unro_combined_ds = []
-    ro_combined_ds = []
-    
-    unro_odd_ds = []
-    ro_odd_ds = []
-    
-    unro_even_ds = []
-    ro_even_ds = []
-
-    for el in combined_list:
-        d = el.json_metadata['d']
-        p = el.json_metadata['p']
-        rot = el.json_metadata['ro']
-
-        if rot == 'ro':
-            if (d%2) == 0:
-                my_even_list.append(el)
-                if d not in ro_even_ds:
-                    ro_even_ds.append(d)
-            else:
-                my_odd_list.append(el)
-                if d not in ro_odd_ds:
-                    ro_odd_ds.append(d)
-            
-            if d not in ro_combined_ds:
-                ro_combined_ds.append(d)
-
-
-        if rot == 'unro':
-            if d != 19:  # don't have enough data for this distance
-                
-                if (d%2) == 0:
-                    my_even_list.append(el)
-                    if d not in unro_even_ds:
-                        unro_even_ds.append(d)
-                else:
-                    my_odd_list.append(el)
-                    if d not in unro_odd_ds:
-                        unro_odd_ds.append(d)
-                
-                if d not in unro_combined_ds:
-                    unro_combined_ds.append(d)
-
-
-
-    print(f"\ndistances = {distances}")
-
-    minp = 0
-    maxp = 1
-    
-    
-    num_rounds = '3d'; 
-    find_pL_per = 'd rounds'
-
-    # colors = colors # different colour for every distance
-    
-    colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf', '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'] # matplot default colours
-
-
-
-
-    ylim_flag = False
-
-
-    for rot, order, mem in zip(['unro','ro'],[unroorder,roorder],[basis,basis]):
-
-
-
-        if distances == 'even':
-            mylist = my_even_list
-
-            if rot == 'ro':
-                ds = ro_even_ds
-            elif rot == 'unro':
-                ds = unro_even_ds
-        
-        
-        elif distances == 'odd':
-            mylist = my_odd_list
-            
-            if rot == 'ro':
-                ds = ro_odd_ds
-            elif rot == 'unro':
-                ds = unro_odd_ds
-            
-        elif distances == 'combined':
-            mylist = combined_list
-            
-            if rot == 'ro':
-                ds = ro_combined_ds
-            elif rot == 'unro':
-                ds = unro_combined_ds
-        else:
-            print("choose distances = 'odd', 'even' or 'combined'")
-
-
-        # Order the ds (only makes a difference to plot legend)
-        ds = np.array(ds)
-        ds = np.sort(ds)
-
-        # print(f"ds = {ds}")
-        
-        if rot == 'ro':
-
-            mind = max(romind, min(ds))
-            maxd = min(romaxd, max(ds))
-
-
-        if rot == 'unro':
-            mind = max(unromind, min(ds))
-            maxd = min(unromaxd, max(ds))
-        
-
-
-        maxp = 0.004 #memaxp
-        print(f"\n{rot} {mem} {order}\n")
-        # print(f"mind = {mind}, maxd = {maxd}")
-
-        # For a given d, I need to run over all the stats to fit a curve for log10(pL) = m * log10(p) + b
-
-        lines = []
-        Ems = []
-        Ebs = []
-        these_ds = []
-        these_ds_ps = []
-
-        # Below is based on extract4teraquop, but that fit to pL vs. d. Here we fit to pL vs. p
-        index = 0 
-
-
-
-        for d in ds: # find m and b for each distance's log10(pL) = m * log10(p) + b 
-
-            if d < mind or d > maxd:
-                continue
-            
-            these_ds.append(d)
-
-            this_ds_pLs = []
-            this_ds_log10_pLs = []
-
-            this_ds_ps = []
-            this_ds_log10_ps = []
-
-            this_ds_pLs_RMSE = []
-            
-            this_ds_uncertainties_in_log10_pLs = []
-
-            for stat in mylist:
-                p = stat.json_metadata['p']
-                b = stat.json_metadata['b']
-                rt = stat.json_metadata['ro']
-                stat_d = stat.json_metadata['d']
-                o = stat.json_metadata['o']
-                r = stat.json_metadata['r']
-
-                if stat_d != d:
-                    continue
-                if not stat.errors:
-                    continue
-                if rt != rot or o != order or b!=mem or r!=num_rounds or p > maxp:
-                    continue
-                # excluding a couple points which don't have enough samples:
-                if d == 19 and rt == 'ro' and p < 0.001: 
-                    continue
-                if d == 16 and rt == 'unro' and p < 0.001:
-                    continue
-
-                this_ds_ps.append(p)
-                this_ds_log10_ps.append(np.log10(p))
-
-
-                pL, RMSE = calculate_pL(stat)
-
-                this_ds_pLs.append(pL)
-                this_ds_pLs_RMSE.append(RMSE)
-
-                this_ds_log10_pLs.append(np.log10(pL))
-                this_ds_uncertainties_in_log10_pLs.append(RMSE / (np.log(10) * pL)) 
-
-            # print(this_ds_ps)
-
-            if len(this_ds_ps) == 0:
-                line_number = inspect.currentframe().f_lineno
-                # sys.exit(f"Line {line_number + 1}: no circuits matched d = {d}, b = {mem}, rt = {rot} , o = {order} in input csv file.")
-                print(f"no circuits matched d = {d}, b = {mem}, rt = {rot} , o = {order} in input csv file.")
-                continue
-                # break
-
-            # Now, for a given d, we have log10(pL) and log10(p). Let's fit to them.
-
-            xvalues = np.array(this_ds_log10_ps)
-            yvalues = np.array(this_ds_log10_pLs)
-            yvalues_uncertainties = np.array(this_ds_uncertainties_in_log10_pLs)
-            
-            if uncertainty_weighting_option == 1:
-                popt, pcov = optimize.curve_fit(linear_func, xvalues, yvalues, sigma = this_ds_uncertainties_in_log10_pLs, absolute_sigma = True) 
-
-                m, b = popt
-
-                Em = np.sqrt(pcov[0,0]) # error (standard deviation) in m_fit
-                Eb = np.sqrt(pcov[1,1])
-            
-            else:
-
-                N = len(xvalues)
-
-                # Step 1: Fit the line (Ordinary Least Squares)
-                X = np.vstack((xvalues, np.ones(N))).T
-
-                # Perform the least-squares fit to get m and b
-                # (X^T * X)^(-1) * X^T * y
-                coeffs, residuals, _, _ = np.linalg.lstsq(X, yvalues, rcond=None)
-                m, b = coeffs
-
-                # Step 2: Calculate the residuals
-                residuals = yvalues - (m * xvalues + b)
-
-                # Step 3: Estimate the variance of the residuals
-                residual_variance = np.sum(residuals**2) / (N - 2)
-
-                # Step 4: Include the known uncertainties in y-values
-                effective_variance = residual_variance + np.mean(yvalues_uncertainties**2)
-
-                # Step 5: Calculate the covariance matrix
-
-                cov_matrix = effective_variance * np.linalg.inv(X.T @ X)
-
-                # Step 6: Extract uncertainties in m and b
-                Em = np.sqrt(cov_matrix[0, 0])
-                Eb = np.sqrt(cov_matrix[1, 1])
-
-
-            line = [] # will be of the form ax + by + c = 0. i.e. mx - y + b = 0
-
-            line.append(m) 
-            line.append(-1)
-            line.append(b)
-
-            lines.append(line)
-
-            Ems.append(Em)
-            Ebs.append(Eb)
-
-            these_ds_ps.append(this_ds_ps)
-
-            if optional_plot:
-                # color = colors[(index+2) % len(colors)] if rot == 'ro' else colors[index % len(colors)]
-                color = colors[index % len(colors)]
-                
-                scatterplot = plt.scatter(this_ds_ps, this_ds_pLs, marker = '.', label = f"d = {d}", color = color,zorder = 3)
-                color = scatterplot.get_facecolor()[0]
-
-                # Plot the uncertainty (RMSE(p_MLE)):
-                upper_log_pL = np.array(this_ds_pLs) + np.array(this_ds_pLs_RMSE)
-                lower_log_pL = np.array(this_ds_pLs) - np.array(this_ds_pLs_RMSE)
-                plt.fill_between(this_ds_ps, upper_log_pL, lower_log_pL, color = color, alpha = 0.3, zorder=2)
-                index += 1
-
-
-        # For each line (distance), we now have the m and b paramaters for the curve log10(pL) = m * log10(p) + b
-
-        # Threshold is where these curves intersect (or, at least, the region around the closest point to all of them as we know they don't perfectly intersect)
-
-        # for a given perp. dist., what is its error? 
-
-
-        closest_point = find_closest_point(lines)
-        x, y = closest_point # NOTICE THIS IS NOT LOG
-
-        pth = 10 ** x
-        pLth = 10 ** y
-
-
-        # Calculate uncertainty:
-        use_max_perp_dist = True
-
-        if use_max_perp_dist == False:
-            Ex = find_error_in_point(lines, Ems, Ebs, closest_point)
-            Ey = Ex
-
-            # print(f"Point and error before converting: \n {x} ± {Ex}\n")
-
-            Epth = np.log(10) * (10 ** x) * Ex
-            EpLth = np.log(10) * (10 ** y) * Ey
-
-            # print(f"Using uncertainty in position of closest point to all lines:\n {pth} ± {Epth}\n") # this is uncertainty in the position of the closest point to all the lines. The uncertainty in this is very small due to small sampling errors. So if you want to report uncertainty on the closest point to all the lines you can.
-        
-        else:
-            ## Alternatively the maximum perpindicular distance as uncertainty would encapsulate all the lines, which I would say is a better indication of where the threshold would be.
-            largest_perp_dist = 0
-            for line in lines:
-                temp_dist = distance_point_to_line(closest_point, line) 
-                
-                if temp_dist > largest_perp_dist:
-                    largest_perp_dist = temp_dist
-
-            largest_perp_dist_on_log_graph = largest_perp_dist * (10 ** x) # when converting distances on a logarithmic scale you multiply by the scaling at the point you are at
-            Epth = largest_perp_dist_on_log_graph
-
-
-        ## NEXT STEP: find alpha.
-        # We have each line in the form log10(pL) = m * log10(p) + b
-        # This rearranges to pL = 10^b * p^m.
-        # To make equivalent to pL = α (p/p_th)^m ⇒  α = 10^b * (p_th)^m
-
-        # (If you just tried to make equivalent to pL = α p^m ⇒  α = 10^b, this would result in a different alpha for every distance.)
-
-        # I'm just going to find each curve's α and then get a weighted mean, propagating the uncertainty through.
-
-        alphas = []
-        Ealphas = []
-
-        for j, line in enumerate(lines):
-            m = line[0]
-            b = line[2]
-
-            
-            Em = Ems[j]
-            Eb = Ebs[j]
-
-            alpha = 10 ** b * pth ** m
-
-            Etenb = 10 ** b * np.log(10) * Eb
-            u = pth ** m
-            dudp = m * (pth ** (m - 1))
-            dudm = (pth ** m) * np.log(pth)
-            Eu = np.sqrt((dudp * Epth) ** 2 + (dudm * Em) ** 2)
-            
-            Ealpha = alpha * np.sqrt((Etenb / (10 ** b)) ** 2 + (Eu / u) ** 2)
-            alphas.append(alpha)
-            Ealphas.append(Ealpha)
-
-            # print(f"α = {alpha} ± {Ealpha}")
-
-        alphas = np.array(alphas)
-        Ealphas = np.array(Ealphas)
-
-        weights = 1 / np.square(Ealphas)
-        weighted_mean = np.sum(weights * alphas) / np.sum(weights)
-        weighted_mean_error =  np.sqrt(1 / np.sum(weights))
-
-        alpha = weighted_mean
-
-        print(f"    α = {weighted_mean:.3f} ± {weighted_mean_error:.3f}" )
-        print(f"    β = {pth:.5f} ± {Epth:.5f}")  # printing pth after α simply because it appears after in eqn.
-
-        # NEXT STEP: find polynomial in d which describes m. m(d) = β * d + γ 
-
-        ms = []
-        for line in lines:
-            ms.append(line[0])
-
-        Ems = np.array(Ems)
-
-        # # Using np.polyfit:
-        # coefficients, coeff_errors = weighted_polyfit_with_errors(these_ds, ms, Ems, degree = 1)
-        # gamma = coefficients[0]
-        # delta = coefficients[1]
-        # Egamma = coeff_errors[0]
-        # Edelta = coeff_errors[1]
-        
-        if uncertainty_weighting_option == 1:
-            # Using scipy optimize:
-            popt, pcov = optimize.curve_fit(linear_func, these_ds, ms, sigma = Ems, absolute_sigma = True) 
-            gamma, delta = popt
-            Egamma = np.sqrt(pcov[0,0]) # error (standard deviation) in m_fit
-            Edelta = np.sqrt(pcov[1,1])
-        
-        else:
-
-            xvalues = np.array(these_ds)
-            yvalues = np.array(ms)
-            yvalues_uncertainties = np.array(Ems)
-            
-            N = len(xvalues)
-
-            # Step 1: Fit the line (Ordinary Least Squares)
-            X = np.vstack((xvalues, np.ones(N))).T
-
-            # Perform the least-squares fit to get m and b
-            # (X^T * X)^(-1) * X^T * y
-            coeffs, residuals, _, _ = np.linalg.lstsq(X, yvalues, rcond=None)
-            gamma, delta = coeffs
-
-            # Step 2: Calculate the residuals
-            residuals = yvalues - (gamma * xvalues + delta)
-
-            # Step 3: Estimate the variance of the residuals
-            residual_variance = np.sum(residuals**2) / (N - 2)
-
-            # Step 4: Include the known uncertainties in y-values
-            effective_variance = residual_variance + np.mean(yvalues_uncertainties**2)
-
-            # Step 5: Calculate the covariance matrix
-            cov_matrix = effective_variance * np.linalg.inv(X.T @ X)
-
-
-            # Step 6: Extract uncertainties in gamma and delta
-            Egamma = np.sqrt(cov_matrix[0, 0])
-            Edelta = np.sqrt(cov_matrix[1, 1])
-
-        
-        print(f"    γ = {gamma:.3f} ± {Egamma:.3f}")
-        print(f"    δ = {-delta:.2f} ± {Edelta:.2f}")
-
-        # print(f"\n⇒ pL = {alpha:.3f}(p/{pth:.4f})^({gamma:.2f}d - {-delta:.2f})")
-
-
-        if optional_plot: # plots the line fits as well
-
-
-            plt.grid(zorder = 0)
-
-            
-            def pL(p,d):
-                return alpha*(p/pth)**(gamma*d + delta)
-
-            index = 0
-            for j in range(len(these_ds)): # for d in list(range(6,30)): # if want to extrapolate
-                
-                # color = colors[(index+2) % len(colors)] if rot == 'ro' else colors[index % len(colors)]
-                color = colors[index % len(colors)]
-                
-                d = these_ds[j]
-                # ps = these_ds_ps[j]
-                # ps = np.sort(ps)
-                
-                ps = np.linspace(0.0005, maxp, len(these_ds))
-                
-                linestyle = '--'
-                plt.plot(ps, pL(ps, d), linestyle = linestyle, linewidth = 1, color = 'grey', label = 'Curve fit' if j == 0 else None, zorder = 4)
-            
-                index += 1
-
-            plt.xscale('log')
-            plt.yscale('log')
-            ax = plt.gca()
-            
-            if rot == 'unro':
-                unro_y_limits = ax.get_ylim()
-                ylim_flag = True
-            elif rot == 'ro':
-                if ylim_flag == True:
-                    ax.set_ylim(unro_y_limits)
-
-            ax.set_ylim(1e-12,2e-1)
-
-            plt.legend(loc = 'lower right')
-            title = "Rotated" if rot == 'ro' else "Unrotated"
-            plt.title(title)
-            plt.ylabel('$p_L$ per $d$ rounds')
-            plt.xlabel('$p$')
-            plt.savefig(f'plots/thresholds/{rot}{str(order)}_threshold_plot_WITH_FIT.pdf', format='pdf')
-            plt.show()
-
-        # # Plot fits to each individual line:
-        # # plotlines(lines, maxd, mem) 
-
-
-
-
-
 
 
 
@@ -2092,6 +1609,485 @@ def plot_teraquop(mylist, b, roorder, unroorder, ps = None,  noise_model = 'SD',
 
 
 
+
+
+
+
+def fit_scaling_and_plot(combined_list, distances, basis, roorder, unroorder, minp = 0, maxp = 1, romind = 2, romaxd = 1000, unromind = 2, unromaxd = 1000, uncertainty_weighting_option = 2, optional_plot = True):
+
+    # In paper used romind = 8, unromind = 6, (distances below this didn't fit scaling)
+    # romaxd = 22, unromaxd = 17  (didn't have enough data for distances above these)
+
+    equation = r"\text{Fitting to:}\ \ \ p_L = \alpha \left( p/\beta \right)^{\gamma d\ -\ \delta}"
+    display(Math(equation))
+
+    # uncertainty_weighting_option 
+    # option 1: weight each point based on its uncertainty in subsequent calculations
+
+    # Other option, considering that using option 1 means your function fits will be dragged to fit low distances and low error rates because these are the points you have the most data for with the lowest uncertainty. This biases the fit to not be as relevant to higher distances and lower p values:
+    # 2: fit lines as if all points have equal weight but still propagate the uncertainty through into the fit parameters, meaning they have larger uncertainty. This fits better to the points at lower p and with high d, points which we care about more, but the sacrifice is that it increases the uncertainty.
+
+
+
+    # Split into even and odd distances to compare:
+    my_even_list = [] # will contain whole element
+    my_odd_list = []
+    
+    unro_combined_ds = []
+    ro_combined_ds = []
+    
+    unro_odd_ds = []
+    ro_odd_ds = []
+    
+    unro_even_ds = []
+    ro_even_ds = []
+
+    for el in combined_list:
+        d = el.json_metadata['d']
+        p = el.json_metadata['p']
+        rot = el.json_metadata['ro']
+
+        if rot == 'ro':
+            if (d%2) == 0:
+                my_even_list.append(el)
+                if d not in ro_even_ds:
+                    ro_even_ds.append(d)
+            else:
+                my_odd_list.append(el)
+                if d not in ro_odd_ds:
+                    ro_odd_ds.append(d)
+            
+            if d not in ro_combined_ds:
+                ro_combined_ds.append(d)
+
+
+        if rot == 'unro':
+            if d != 19:  # don't have enough data for this distance
+                
+                if (d%2) == 0:
+                    my_even_list.append(el)
+                    if d not in unro_even_ds:
+                        unro_even_ds.append(d)
+                else:
+                    my_odd_list.append(el)
+                    if d not in unro_odd_ds:
+                        unro_odd_ds.append(d)
+                
+                if d not in unro_combined_ds:
+                    unro_combined_ds.append(d)
+
+
+
+    print(f"\ndistances = {distances}")
+
+    
+    
+    num_rounds = '3d'; 
+    find_pL_per = 'd rounds'
+
+    # colors = colors # different colour for every distance
+    
+    colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf', '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'] # matplot default colours
+
+
+
+
+    ylim_flag = False
+
+
+    for rot, order, mem in zip(['unro','ro'],[unroorder,roorder],[basis,basis]):
+
+
+
+        if distances == 'even':
+            mylist = my_even_list
+
+            if rot == 'ro':
+                ds = ro_even_ds
+            elif rot == 'unro':
+                ds = unro_even_ds
+        
+        
+        elif distances == 'odd':
+            mylist = my_odd_list
+            
+            if rot == 'ro':
+                ds = ro_odd_ds
+            elif rot == 'unro':
+                ds = unro_odd_ds
+            
+        elif distances == 'combined':
+            mylist = combined_list
+            
+            if rot == 'ro':
+                ds = ro_combined_ds
+            elif rot == 'unro':
+                ds = unro_combined_ds
+        else:
+            print("choose distances = 'odd', 'even' or 'combined'")
+
+
+        # Order the ds (only makes a difference to plot legend)
+        ds = np.array(ds)
+        ds = np.sort(ds)
+
+        # print(f"ds = {ds}")
+        
+        if rot == 'ro':
+
+            mind = max(romind, min(ds))
+            maxd = min(romaxd, max(ds))
+
+
+        if rot == 'unro':
+            mind = max(unromind, min(ds))
+            maxd = min(unromaxd, max(ds))
+        
+
+
+        print(f"\n{rot} {mem} {order}\n")
+        # print(f"mind = {mind}, maxd = {maxd}")
+
+        # For a given d, I need to run over all the stats to fit a curve for log10(pL) = m * log10(p) + b
+
+        lines = []
+        Ems = []
+        Ebs = []
+        these_ds = []
+        these_ds_ps = []
+
+        # Below is based on extract4teraquop, but that fit to pL vs. d. Here we fit to pL vs. p
+        index = 0 
+
+
+
+        for d in ds: # find m and b for each distance's log10(pL) = m * log10(p) + b 
+
+            if d < mind or d > maxd:
+                continue
+            
+            these_ds.append(d)
+
+            this_ds_pLs = []
+            this_ds_log10_pLs = []
+
+            this_ds_ps = []
+            this_ds_log10_ps = []
+
+            this_ds_pLs_RMSE = []
+            
+            this_ds_uncertainties_in_log10_pLs = []
+
+            for stat in mylist:
+                p = stat.json_metadata['p']
+                b = stat.json_metadata['b']
+                rt = stat.json_metadata['ro']
+                stat_d = stat.json_metadata['d']
+                o = stat.json_metadata['o']
+                r = stat.json_metadata['r']
+
+                if stat_d != d:
+                    continue
+                if not stat.errors:
+                    continue
+                if rt != rot or o != order or b!=mem or r!=num_rounds or p > maxp:
+                    continue
+                # excluding a couple points which don't have enough samples:
+                if d == 19 and rt == 'ro' and p < 0.001: 
+                    continue
+                if d == 16 and rt == 'unro' and p < 0.001:
+                    continue
+
+                this_ds_ps.append(p)
+                this_ds_log10_ps.append(np.log10(p))
+
+
+                pL, RMSE = calculate_pL(stat)
+
+                this_ds_pLs.append(pL)
+                this_ds_pLs_RMSE.append(RMSE)
+
+                this_ds_log10_pLs.append(np.log10(pL))
+                this_ds_uncertainties_in_log10_pLs.append(RMSE / (np.log(10) * pL)) 
+
+            # print(this_ds_ps)
+
+            if len(this_ds_ps) == 0:
+                line_number = inspect.currentframe().f_lineno
+                # sys.exit(f"Line {line_number + 1}: no circuits matched d = {d}, b = {mem}, rt = {rot} , o = {order} in input csv file.")
+                print(f"no circuits matched d = {d}, b = {mem}, rt = {rot} , o = {order} in input csv file.")
+                continue
+                # break
+
+            # Now, for a given d, we have log10(pL) and log10(p). Let's fit to them
+
+            xvalues = np.array(this_ds_log10_ps)
+            yvalues = np.array(this_ds_log10_pLs)
+            yvalues_uncertainties = np.array(this_ds_uncertainties_in_log10_pLs)
+            
+            if uncertainty_weighting_option == 1:
+                popt, pcov = optimize.curve_fit(linear_func, xvalues, yvalues, sigma = this_ds_uncertainties_in_log10_pLs, absolute_sigma = True) 
+
+                m, b = popt
+
+                Em = np.sqrt(pcov[0,0]) # error (standard deviation) in m_fit
+                Eb = np.sqrt(pcov[1,1])
+            
+            else:
+
+                N = len(xvalues)
+
+                # Step 1: Fit the line (Ordinary Least Squares)
+                X = np.vstack((xvalues, np.ones(N))).T
+
+                # Perform the least-squares fit to get m and b
+                # (X^T * X)^(-1) * X^T * y
+                coeffs, residuals, _, _ = np.linalg.lstsq(X, yvalues, rcond=None)
+                m, b = coeffs
+
+                # Step 2: Calculate the residuals
+                residuals = yvalues - (m * xvalues + b)
+
+                # Step 3: Estimate the variance of the residuals
+                residual_variance = np.sum(residuals**2) / (N - 2)
+
+                # Step 4: Include the known uncertainties in y-values
+                effective_variance = residual_variance + np.mean(yvalues_uncertainties**2)
+
+                # Step 5: Calculate the covariance matrix
+
+                cov_matrix = effective_variance * np.linalg.inv(X.T @ X)
+
+                # Step 6: Extract uncertainties in m and b
+                Em = np.sqrt(cov_matrix[0, 0])
+                Eb = np.sqrt(cov_matrix[1, 1])
+
+
+            line = [] # will be of the form ax + by + c = 0. i.e. mx - y + b = 0
+
+            line.append(m) 
+            line.append(-1)
+            line.append(b)
+
+            lines.append(line)
+
+            Ems.append(Em)
+            Ebs.append(Eb)
+
+            these_ds_ps.append(this_ds_ps)
+
+            if optional_plot:
+                # color = colors[(index+2) % len(colors)] if rot == 'ro' else colors[index % len(colors)]
+                color = colors[index % len(colors)]
+                
+                scatterplot = plt.scatter(this_ds_ps, this_ds_pLs, marker = '.', label = f"d = {d}", color = color,zorder = 3)
+                color = scatterplot.get_facecolor()[0]
+
+                # Plot the uncertainty (RMSE(p_MLE)):
+                upper_log_pL = np.array(this_ds_pLs) + np.array(this_ds_pLs_RMSE)
+                lower_log_pL = np.array(this_ds_pLs) - np.array(this_ds_pLs_RMSE)
+                plt.fill_between(this_ds_ps, upper_log_pL, lower_log_pL, color = color, alpha = 0.3, zorder=2)
+                index += 1
+
+
+        # For each line (distance), we now have the m and b paramaters for the curve log10(pL) = m * log10(p) + b
+
+        # Threshold is where these curves intersect (or, at least, the region around the closest point to all of them as we know they don't perfectly intersect)
+
+        # for a given perp. dist., what is its error? 
+
+
+        closest_point = find_closest_point(lines)
+        x, y = closest_point # NOTICE THIS IS NOT LOG
+
+        pth = 10 ** x
+        pLth = 10 ** y
+
+
+        # Calculate uncertainty:
+        use_max_perp_dist = True
+
+        if use_max_perp_dist == False:
+            Ex = find_error_in_point(lines, Ems, Ebs, closest_point)
+            Ey = Ex
+
+            # print(f"Point and error before converting: \n {x} ± {Ex}\n")
+
+            Epth = np.log(10) * (10 ** x) * Ex
+            EpLth = np.log(10) * (10 ** y) * Ey
+
+            # print(f"Using uncertainty in position of closest point to all lines:\n {pth} ± {Epth}\n") # this is uncertainty in the position of the closest point to all the lines. The uncertainty in this is very small due to small sampling errors. So if you want to report uncertainty on the closest point to all the lines you can.
+        
+        else:
+            ## Alternatively the maximum perpindicular distance as uncertainty would encapsulate all the lines, which I would say is a better indication of where the threshold would be.
+            largest_perp_dist = 0
+            for line in lines:
+                temp_dist = distance_point_to_line(closest_point, line) 
+                
+                if temp_dist > largest_perp_dist:
+                    largest_perp_dist = temp_dist
+
+            largest_perp_dist_on_log_graph = largest_perp_dist * (10 ** x) # when converting distances on a logarithmic scale you multiply by the scaling at the point you are at
+            Epth = largest_perp_dist_on_log_graph
+
+
+        ## NEXT STEP: find alpha.
+        # We have each line in the form log10(pL) = m * log10(p) + b
+        # This rearranges to pL = 10^b * p^m.
+        # To make equivalent to pL = α (p/p_th)^m ⇒  α = 10^b * (p_th)^m
+
+        # (If you just tried to make equivalent to pL = α p^m ⇒  α = 10^b, this would result in a different alpha for every distance.)
+
+        # I'm just going to find each curve's α and then get a weighted mean, propagating the uncertainty through.
+
+        alphas = []
+        Ealphas = []
+
+        for j, line in enumerate(lines):
+            m = line[0]
+            b = line[2]
+
+            
+            Em = Ems[j]
+            Eb = Ebs[j]
+
+            alpha = 10 ** b * pth ** m
+
+            Etenb = 10 ** b * np.log(10) * Eb
+            u = pth ** m
+            dudp = m * (pth ** (m - 1))
+            dudm = (pth ** m) * np.log(pth)
+            Eu = np.sqrt((dudp * Epth) ** 2 + (dudm * Em) ** 2)
+            
+            Ealpha = alpha * np.sqrt((Etenb / (10 ** b)) ** 2 + (Eu / u) ** 2)
+            alphas.append(alpha)
+            Ealphas.append(Ealpha)
+
+            # print(f"α = {alpha} ± {Ealpha}")
+
+        alphas = np.array(alphas)
+        Ealphas = np.array(Ealphas)
+
+        weights = 1 / np.square(Ealphas)
+        weighted_mean = np.sum(weights * alphas) / np.sum(weights)
+        weighted_mean_error =  np.sqrt(1 / np.sum(weights))
+
+        alpha = weighted_mean
+
+        print(f"    α = {weighted_mean:.3f} ± {weighted_mean_error:.3f}" )
+        print(f"    β = {pth:.5f} ± {Epth:.5f}")  # printing pth after α simply because it appears after in eqn.
+
+        # NEXT STEP: find polynomial in d which describes m. m(d) = β * d + γ 
+
+        ms = []
+        for line in lines:
+            ms.append(line[0])
+
+        Ems = np.array(Ems)
+
+        # # Using np.polyfit:
+        # coefficients, coeff_errors = weighted_polyfit_with_errors(these_ds, ms, Ems, degree = 1)
+        # gamma = coefficients[0]
+        # delta = coefficients[1]
+        # Egamma = coeff_errors[0]
+        # Edelta = coeff_errors[1]
+        
+        if uncertainty_weighting_option == 1:
+            # Using scipy optimize:
+            popt, pcov = optimize.curve_fit(linear_func, these_ds, ms, sigma = Ems, absolute_sigma = True) 
+            gamma, delta = popt
+            Egamma = np.sqrt(pcov[0,0]) # error (standard deviation) in m_fit
+            Edelta = np.sqrt(pcov[1,1])
+        
+        else:
+
+            xvalues = np.array(these_ds)
+            yvalues = np.array(ms)
+            yvalues_uncertainties = np.array(Ems)
+            
+            N = len(xvalues)
+
+            # Step 1: Fit the line (Ordinary Least Squares)
+            X = np.vstack((xvalues, np.ones(N))).T
+
+            # Perform the least-squares fit to get m and b
+            # (X^T * X)^(-1) * X^T * y
+            coeffs, residuals, _, _ = np.linalg.lstsq(X, yvalues, rcond=None)
+            gamma, delta = coeffs
+
+            # Step 2: Calculate the residuals
+            residuals = yvalues - (gamma * xvalues + delta)
+
+            # Step 3: Estimate the variance of the residuals
+            residual_variance = np.sum(residuals**2) / (N - 2)
+
+            # Step 4: Include the known uncertainties in y-values
+            effective_variance = residual_variance + np.mean(yvalues_uncertainties**2)
+
+            # Step 5: Calculate the covariance matrix
+            cov_matrix = effective_variance * np.linalg.inv(X.T @ X)
+
+
+            # Step 6: Extract uncertainties in gamma and delta
+            Egamma = np.sqrt(cov_matrix[0, 0])
+            Edelta = np.sqrt(cov_matrix[1, 1])
+
+        
+        print(f"    γ = {gamma:.3f} ± {Egamma:.3f}")
+        print(f"    δ = {-delta:.2f} ± {Edelta:.2f}")
+
+        # print(f"\n⇒ pL = {alpha:.3f}(p/{pth:.4f})^({gamma:.2f}d - {-delta:.2f})")
+
+
+        if optional_plot: # plots the line fits as well
+
+
+            plt.grid(zorder = 0)
+
+            
+            def pL(p,d):
+                return alpha*(p/pth)**(gamma*d + delta)
+
+            index = 0
+            for j in range(len(these_ds)): # for d in list(range(6,30)): # if want to extrapolate
+                
+                # color = colors[(index+2) % len(colors)] if rot == 'ro' else colors[index % len(colors)]
+                color = colors[index % len(colors)]
+                
+                d = these_ds[j]
+                # ps = these_ds_ps[j]
+                # ps = np.sort(ps)
+                
+                ps = np.linspace(minp, maxp, len(these_ds))
+                
+                linestyle = '--'
+                plt.plot(ps, pL(ps, d), linestyle = linestyle, linewidth = 1, color = 'grey', label = 'Curve fit' if j == 0 else None, zorder = 4)
+            
+                index += 1
+
+            plt.xscale('log')
+            plt.yscale('log')
+            ax = plt.gca()
+            
+            if rot == 'unro':
+                unro_y_limits = ax.get_ylim()
+                ylim_flag = True
+            elif rot == 'ro':
+                if ylim_flag == True:
+                    ax.set_ylim(unro_y_limits)
+
+            # ax.set_ylim(1e-12,2e-1)
+
+            plt.legend(loc = 'lower right')
+            title = "Rotated" if rot == 'ro' else "Unrotated"
+            plt.title(title)
+            plt.ylabel('$p_L$ per $d$ rounds')
+            plt.xlabel('$p$')
+            plt.savefig(f'plots/thresholds/{rot}{str(order)}_threshold_plot_WITH_FIT.pdf', format='pdf')
+            plt.show()
+
+        # # Plot fits to each individual line:
+        # # plotlines(lines, maxd, mem) 
 
 
 
