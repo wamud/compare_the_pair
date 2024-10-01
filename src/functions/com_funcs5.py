@@ -160,21 +160,35 @@ def plot_thresholds(mylist, roorder, unroorder, romind = 2, unromind = 2, minp =
 
         for mem in 'xz':
             plt.gca().set_prop_cycle(None)  # reset the colour cycle
-            sinterplotthreshold_v2(ax,mylist,order,rot,mem,'3d',find_pL_per,romind, unromind)
-            if rot == 'unro':
-                # ax.margins(y = 0.15)
-                unro_y_limits = ax.get_ylim()
-                # ax.set_ylim(new_lower_lim, new_upper_lim)
-                # unro_y_limits = ax.get_ylim()
-                ylim_flag = True
+            sinterplotthreshold_v2(ax,mylist,order,rot,mem,'3d',find_pL_per,romind, unromind, maxd, minp = minp)
+            # if rot == 'unro':
+            #     # ax.margins(y = 0.15)
+            #     unro_y_limits = ax.get_ylim()
+            #     # ax.set_ylim(new_lower_lim, new_upper_lim)
+            #     # unro_y_limits = ax.get_ylim()
+            #     ylim_flag = True
             
-            elif rot == 'ro':
-                if ylim_flag == True:
-                    ax.set_ylim(unro_y_limits)
+            # elif rot == 'ro':
+            #     if ylim_flag == True:
+            #         ax.set_ylim(unro_y_limits)
 
+        # Get the handles and labels
         handles, labels = ax.get_legend_handles_labels()
 
-        first_legend = ax.legend(handles[:len(handles)//2], labels[:len(handles)//2], title='Distance', markerscale=0, loc='lower right')
+        # Create a dictionary to store unique labels
+        unique_labels = {}
+        unique_handles = []
+
+        # Filter out duplicate labels
+        for handle, label in zip(handles, labels):
+            if label not in unique_labels:
+                unique_labels[label] = True  # Mark the label as seen
+                unique_handles.append(handle)  # Add corresponding handle
+
+        # first_legend = ax.legend(handles[:len(handles)//2], labels[:len(handles)//2], title='Distance', markerscale=0, loc='lower right')
+        # ax.add_artist(first_legend)
+        
+        first_legend = ax.legend(unique_handles, unique_labels.keys(), title='Distance', markerscale=0, loc='lower right')
         ax.add_artist(first_legend)
 
         for line in first_legend.get_lines():
@@ -194,7 +208,7 @@ def plot_thresholds(mylist, roorder, unroorder, romind = 2, unromind = 2, minp =
 
 
 
-def sinterplotthreshold_v2(ax,mylist,order,rot,mem,num_rounds,find_pL_per,romind = 2, unromind = 2, maxd=100,maxp=1, minp=0, plot_values_near_005 = False):
+def sinterplotthreshold_v2(ax,mylist,order,rot,mem,num_rounds,find_pL_per,romind = 2, unromind = 2, maxd = 100,maxp=1, minp=0, plot_values_near_005 = False):
     # v2 calculates what the start colour for each graph should be based on romind (rotated code, minimum distance) and unromind (unrotated code minimum distance) to make the same colours for the same distances
 
     # sinter.plot_error_rate: https://github.com/quantumlib/Stim/wiki/Sinter-v1.12-Python-API-Reference#sinter.plot_error_rate:
@@ -215,6 +229,8 @@ def sinterplotthreshold_v2(ax,mylist,order,rot,mem,num_rounds,find_pL_per,romind
         romind = min(ro_ds)
     if unromind < min(unro_ds):
         unromind = min(unro_ds)
+
+
 
 
     diff = romind - unromind ## if romind starts 2 above unro (for example) then its colours should start two above too.
@@ -261,6 +277,7 @@ def sinterplotthreshold_v2(ax,mylist,order,rot,mem,num_rounds,find_pL_per,romind
 
             (not (0.0056<=s.json_metadata['p']<=0.0058) if not plot_values_near_005 else True) and
             (not (0.0050<s.json_metadata['p']<0.0055) if not plot_values_near_005 else True) and
+            
             (s.json_metadata['b']==mem1 or s.json_metadata['b']==mem2) and
 
             (rot in (s.json_metadata.get('ro'), s.json_metadata.get('rt'))) and
@@ -271,46 +288,28 @@ def sinterplotthreshold_v2(ax,mylist,order,rot,mem,num_rounds,find_pL_per,romind
             (s.json_metadata.get('idl',None)=='y' if 'idl' in s.json_metadata else True) and
 
         #     ## just excluding the points for high distance and low p which don't have enough samples:
-            (s.json_metadata['p'] >= 0.0007 if (s.json_metadata['d']==15 and s.json_metadata['ro']=='unro') else s.json_metadata['p']<=maxp) and
-            (s.json_metadata['p'] >= 0.001 if (s.json_metadata['d']>=16 and s.json_metadata['ro']=='unro') else s.json_metadata['p']<=maxp) and
-
-            (s.json_metadata['p'] >= 0.001 if (s.json_metadata['d']>=19 and s.json_metadata['ro']=='ro') else s.json_metadata['p']<=maxp) and
-
-        # #     # CXSI noise 
-        # #     # (s.json_metadata['p'] >= 0.001 if (s.json_metadata['d']>=17 and s.json_metadata['ro']=='ro' and s.json_metadata['noise']=='CXSI') else s.json_metadata['p']<=maxp) and
-        # #     # (s.json_metadata['p'] >= 0.0007 if (s.json_metadata['d']==15 and s.json_metadata['ro']=='ro' and s.json_metadata['noise']=='CXSI') else s.json_metadata['p']<=maxp) and
+            # (s.json_metadata['p'] >= 0.0007 if (s.json_metadata['d']==15 and s.json_metadata['ro']=='unro') else s.json_metadata['p']<=maxp) and
+            # (s.json_metadata['p'] >= 0.001 if (s.json_metadata['d']>=16 and s.json_metadata['ro']=='unro') else s.json_metadata['p']<=maxp) and
+            # (s.json_metadata['p'] >= 0.001 if (s.json_metadata['d']>=19 and s.json_metadata['ro']=='ro') else s.json_metadata['p']<=maxp) and
+            # (not s.json_metadata['d'] == 19 if s.json_metadata.get('ro', s.json_metadata.get('rot', None)) == 'unro' else True) and
             
-        # #     # (s.json_metadata['p'] >= 0.0007 if (s.json_metadata['d']==13 and s.json_metadata['ro']=='unro' and s.json_metadata['noise']=='CXSI') else s.json_metadata['p']<=maxp) and
-        # #     # (s.json_metadata['p'] >= 0.001 if (s.json_metadata['d']==15 and s.json_metadata['ro']=='unro' and s.json_metadata['noise']=='CXSI') else s.json_metadata['p']<=maxp) and
-        # #     # (s.json_metadata['p'] >= 0.002 if (s.json_metadata['d']==17 and s.json_metadata['ro']=='unro' and s.json_metadata['noise']=='CXSI') else s.json_metadata['p']<=maxp) and
-
-            (not s.json_metadata['d'] == 19 if s.json_metadata.get('ro', s.json_metadata.get('rot', None)) == 'unro' else True) and
+            # Finally the CNOT order should be the one specified:
             s.json_metadata['o'] == order,
     
         plot_args_func = lambda index, curve_id: {   # for each curve this function plots it gives it an index. The first curve will have the lowest index.
         
-        'color': colors[(index + diff) % len(colors)] if rot == 'ro' else colors[index % len(colors)], # put in + diff to rotated because I'm usually plotting its distance from 8, whereas unro from 6
-        # 'color': colors[(index) % len(colors)],
-        'marker': 'x' if mem == 'x' else 'p'
+            'color': colors[(index + diff) % len(colors)] if rot == 'ro' else colors[index % len(colors)], # put in + diff to rotated because I'm usually plotting its distance from 8, whereas unro from 6
+
+            'marker': 'x' if mem == 'x' else 'p'
         },
+        
         # line_fits = ('log','log'), # need updated sinter for this
     )
 
     ax.loglog()
-    # ax.set_title(f'$p_L$ vs $p$ ({rot}tated, mem {mem}, ${num_rounds}$ rounds, {order} order)')
     ax.set_title(f'{rot}tated, {order} order')
-    # ax.set_title(f'Memory {mem}')
     ax.set_ylabel(f'Logical error rate ($p_L$) per $d$ rounds') if find_pL_per == 'd rounds' else ax.set_ylabel(f'Logical error rate ($p_L$) per {find_pL_per}')
     ax.set_xlabel(f'Physical Error Rate ($p$)')
-    
-    # ax.xaxis.set_major_locator(MaxNLocator(integer=True)) #forces integers on xaxis
-    # ax.legend(loc='lower right')
-
-    # ax.set_xlim(0.0008,0.01)
-    # ax.set_ylim(1e-13,1e0)
-
-    # Save to file and also open in a window.
-    # fig.savefig(f'plots/thresholds/{rot},{mem},{num_rounds} rounds,o={order}.pdf')
 
     return
 

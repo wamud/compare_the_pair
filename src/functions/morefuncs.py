@@ -217,29 +217,73 @@ def modify_x_error_arguments(file_path,new_file_path):
 
 
 
-def modify_depol1_argument(file_path, new_file_path):
-   # Extract p_value from the file name
-   match = re.search(r'p=([0-9.]+)', file_path)
-   if match:
-       p_value = float(match.group(1))
-   else:
-       raise ValueError("p_value could not be found in the file name.")
-   # Read the lines from the file
-   with open(file_path, 'r') as file:
-       lines = file.readlines()
-   # Find the line number just before the line that starts with 'REPEAT'
-   for index, line in enumerate(lines):
-       if line.startswith('REPEAT') and index > 0:
-           # Replace the argument of DEPOLARIZE1 in the preceding line
-           new_argument = 2 * p_value
-           preceding_line = lines[index - 1]
-           lines[index - 1] = re.sub(r'DEPOLARIZE1\((.*?)\)', f'DEPOLARIZE1({new_argument})', preceding_line)
-           break
+# def modify_depol1_argument(file_path, new_file_path):
+#    # Extract p_value from the file name
+#    match = re.search(r'p=([0-9.]+)', file_path)
+#    if match:
+#        p_value = float(match.group(1))
+#    else:
+#        raise ValueError("p_value could not be found in the file name.")
+#    # Read the lines from the file
+#    with open(file_path, 'r') as file:
+#        lines = file.readlines()
+#    # Find the line number just before the line that starts with 'REPEAT'
+#    for index, line in enumerate(lines):
+#        if line.startswith('REPEAT') and index > 0:
+#            # Replace the argument of DEPOLARIZE1 in the preceding line
+#            new_argument = 2 * p_value
+#            preceding_line = lines[index - 1]
+#            lines[index - 1] = re.sub(r'DEPOLARIZE1\((.*?)\)', f'DEPOLARIZE1({new_argument})', preceding_line)
+#            break
 
-   # Write the modified lines back to a new file
-   with open(new_file_path, 'w') as new_file:
-       new_file.writelines(lines)
-   return
+#    # Write the modified lines back to a new file
+#    with open(new_file_path, 'w') as new_file:
+#        new_file.writelines(lines)
+#    return
+
+def modify_depol1_argument(file_path, new_file_path):
+    # Extract p_value from the file name
+    match = re.search(r'p=([0-9.]+)', file_path)
+    if match:
+        p_value = float(match.group(1))
+    else:
+        raise ValueError("p_value could not be found in the file name.")
+    
+    # Read the lines from the file
+    with open(file_path, 'r') as file:
+        lines = file.readlines()
+
+    # First, modify all DEPOLARIZE1 instances to p/10
+    for index, line in enumerate(lines):
+        if 'DEPOLARIZE1' in line:
+            # Modify all DEPOLARIZE1 to p/10
+            lines[index] = re.sub(r'DEPOLARIZE1\((.*?)\)', f'DEPOLARIZE1({p_value / 10})', line)
+
+    # Then, modify the DEPOLARIZE1 just before the REPEAT block to 2p
+    for index, line in enumerate(lines):
+        if line.startswith('REPEAT') and index > 0:
+            # Modify DEPOLARIZE1 in the line just before REPEAT
+            preceding_line = lines[index - 1]
+            if 'DEPOLARIZE1' in preceding_line:
+                lines[index - 1] = re.sub(r'DEPOLARIZE1\((.*?)\)', f'DEPOLARIZE1({2 * p_value})', preceding_line)
+            break
+
+    # Finally, modify the last DEPOLARIZE1 just before the closing curly bracket to 2p
+    for index in range(len(lines) - 1, -1, -1):
+        if lines[index].strip() == '}':
+            preceding_line = lines[index - 1]
+            if 'DEPOLARIZE1' in preceding_line:
+                lines[index - 1] = re.sub(r'DEPOLARIZE1\((.*?)\)', f'DEPOLARIZE1({2 * p_value})', preceding_line)
+            break
+
+    # Write the modified lines back to a new file
+    with open(new_file_path, 'w') as new_file:
+        new_file.writelines(lines)
+
+    return
+
+
+
 
 
 def add_idling_errors_and_save_circuit(thecircuit, b, d, p, ro, x, z):
