@@ -631,10 +631,10 @@ def plot_pL_vs_qubit_count(mylist, b, roorder = 10231203, unroorder = 10231203, 
 
 
     # ps = [0.0005,0.007,0.001,0.0015, 0.002, 0.003, 0.004,0.005]
-    markers = ['s','o','v','x','d','p']
+    markers = ['s', 'o', 'v', 'x', 'd', 'p'] * (len(ps) // 6 + 1)  # Repeat markers if needed
 
     # ps = [0.0005,0.0007, 0.001, 0.0015, 0.002, 0.003, 0.004, 0.005, 0.0055]
-    colours = ['b', 'c','r', 'g', 'magenta', 'salmon', 'k','orange', 'purple']
+    colours = ['b', 'c', 'r', 'g', 'magenta', 'salmon', 'k', 'orange', 'purple'] * (len(ps) // 9 + 1)  # Repeat colours if needed
 
 
     b = 'z'
@@ -910,13 +910,23 @@ def sinterplotpLvD_forteraquop(b,noise,mind,maxd,unroorder,roorder,mylist,num_ro
 
 
 
-def give_p_values(noise_model):
-    if noise_model == 'SD':
-        pvalues  = [0.0005,0.0007, 0.001,0.0015, 0.002, 0.003,0.004, 0.005, 0.0055]
-    elif noise_model == 'CXSI':
-        pvalues = [0.0005, 0.0007, 0.001, 0.002, 0.003, 0.004, 0.005]
+def give_p_values(mylist,roorder, unroorder):
+    
+    pvalues = []
 
-    return(pvalues)
+    for stat in mylist:
+        if stat.json_metadata['ro'] == 'ro':
+            if stat.json_metadata['o'] == roorder:
+                p = stat.json_metadata['p']
+                if p not in pvalues:
+                    pvalues.append(p)
+        elif stat.json_metadata['ro'] == 'unro':
+            if stat.json_metadata['o'] == unroorder:
+                p = stat.json_metadata['p']
+                if p not in pvalues:
+                    pvalues.append(p)
+
+    return sorted(pvalues)
 
 
 
