@@ -26,7 +26,7 @@ def distance_point_to_line(point, line):
     x, y = point
     return np.abs(a * x + b * y + c) / np.sqrt(a ** 2 + b ** 2)
 
-def sinterplotthreshold(ax,mylist,order,rot,mem,num_rounds,find_pL_per,mind=0,maxd=100,maxp=1,minp=0.001,inset_plot_values = False):
+def sinterplotthreshold(ax,mylist,order,rot,mem,num_rounds,find_pL_per,mind=0,maxd=100,maxp=1,minp=0.001,plot_inset_values = False):
 
     # sinter.plot_error_rate: https://github.com/quantumlib/Stim/wiki/Sinter-v1.12-Python-API-Reference#sinter.plot_error_rate:
 
@@ -65,8 +65,8 @@ def sinterplotthreshold(ax,mylist,order,rot,mem,num_rounds,find_pL_per,mind=0,ma
 
             
 
-            (not (0.0056<=s.json_metadata['p']<=0.0058) if not inset_plot_values else True) and
-            (not (0.0050<s.json_metadata['p']<0.0055) if not inset_plot_values else True) and
+            (not (0.0056<=s.json_metadata['p']<=0.0058) if not plot_inset_values else True) and
+            (not (0.0050<s.json_metadata['p']<0.0055) if not plot_inset_values else True) and
             (s.json_metadata['b']==mem1 or s.json_metadata['b']==mem2) and
 
             (rot in (s.json_metadata.get('ro'), s.json_metadata.get('rt'))) and
@@ -145,7 +145,7 @@ def bin_CNOT_orders(mylist):
 
 
 
-def plot_thresholds(mylist, roorder, unroorder, romind = 2, unromind = 2, minp = 0, maxp = 1,  output_dir='plots/thresholds',romaxd = 1000, unromaxd = 1000, find_pL_per = 'd rounds', ylims = [None, None]):
+def plot_thresholds(mylist, roorder, unroorder, romind = 2, unromind = 2, minp = 0, maxp = 1,  output_dir='plots/thresholds',romaxd = 1000, unromaxd = 1000, find_pL_per = 'd rounds', ylims = [None, None], plot_inset_values = False, ignore_minds = False):
 
     orders = [unroorder, roorder]
     maxds = [unromaxd, romaxd]
@@ -159,7 +159,7 @@ def plot_thresholds(mylist, roorder, unroorder, romind = 2, unromind = 2, minp =
 
         for mem in 'xz':
             plt.gca().set_prop_cycle(None)  # reset the colour cycle
-            sinterplotthreshold_v2(ax,mylist,order,rot,mem,'3d',find_pL_per,romind, unromind, maxd, minp = minp, maxp = maxp)
+            sinterplotthreshold_v2(ax,mylist,order,rot,mem,'3d',find_pL_per,romind, unromind, maxd, minp = minp, maxp = maxp,plot_inset_values = plot_inset_values, ignore_minds = ignore_minds)
             ax.set_ylim(ylims[0], ylims[1])
 
         # Get the handles and labels
@@ -198,7 +198,7 @@ def plot_thresholds(mylist, roorder, unroorder, romind = 2, unromind = 2, minp =
 
 
 
-def sinterplotthreshold_v2(ax,mylist,order,rot,mem,num_rounds,find_pL_per,romind = 2, unromind = 2, maxd = 100,maxp=1, minp=0, inset_plot_values = False):
+def sinterplotthreshold_v2(ax,mylist,order,rot,mem,num_rounds,find_pL_per,romind = 2, unromind = 2, maxd = 100,maxp=1, minp=0, plot_inset_values = False,ignore_minds = False):
     # v2 calculates what the start colour for each graph should be based on romind (rotated code, minimum distance) and unromind (unrotated code minimum distance) to make the same colours for the same distances
 
     # sinter.plot_error_rate: https://github.com/quantumlib/Stim/wiki/Sinter-v1.12-Python-API-Reference#sinter.plot_error_rate:
@@ -221,11 +221,15 @@ def sinterplotthreshold_v2(ax,mylist,order,rot,mem,num_rounds,find_pL_per,romind
         unromind = min(unro_ds)
 
 
-
+    if ignore_minds == True:
+        romind = 2
+        unromind = 2
+        colors = ['rebeccapurple', 'royalblue', 'slategray','mediumseagreen','cornflowerblue', '#ff7f0e', '#d62728','#2ca02c', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', 'steelblue','#673AB7', '#FF0000', '#FFA07A','c','m','gold','magenta']
+    else:
+        colors = ['cornflowerblue', '#ff7f0e', '#d62728','#2ca02c', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', 'steelblue','#673AB7', '#FF0000', '#FFA07A','c','m','gold','magenta']
 
     diff = romind - unromind ## if romind starts 2 above unro (for example) then its colours should start two above too.
 
-    colors = ['cornflowerblue', '#ff7f0e', '#d62728','#2ca02c', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', 'steelblue','#673AB7', '#FF0000', '#FFA07A','c','m','gold','magenta']
 
     if mem == 'x' or mem == 'X':
         mem1 = 'x'
@@ -265,8 +269,8 @@ def sinterplotthreshold_v2(ax,mylist,order,rot,mem,num_rounds,find_pL_per,romind
 
             
 
-            (not (0.0056<=s.json_metadata['p']<=0.0058) if not inset_plot_values else True) and
-            (not (0.0050<s.json_metadata['p']<0.0055) if not inset_plot_values else True) and
+            (not (0.0056<=s.json_metadata['p']<=0.0058) if not plot_inset_values else True) and
+            (not (0.0050<s.json_metadata['p']<0.0055) if not plot_inset_values else True) and
             
             (s.json_metadata['b']==mem1 or s.json_metadata['b']==mem2) and
 
@@ -519,7 +523,7 @@ def sinterplotpLvQ_overlaid(b,noise,mind,maxd,unroorder,roorder,mylist,num_round
         
         # # excluding some points without enough samples:
         and
-        (s.json_metadata['p'] > 0.001 if (s.json_metadata['d']>=16 and s.json_metadata['ro']=='unro') else s.json_metadata['p']>0) and
+        # (s.json_metadata['p'] > 0.001 if (s.json_metadata['d']>=16 and s.json_metadata['ro']=='unro') else s.json_metadata['p']>0) and
         (s.json_metadata['d'] <= 15 if (s.json_metadata['p']==0.0007 and s.json_metadata['ro']=='unro') else s.json_metadata['d']<=maxd) 
         and
         (s.json_metadata['d'] <= 18 if (s.json_metadata['p']==0.0007 and s.json_metadata['ro']=='ro') else s.json_metadata['d']<=maxd)
@@ -554,7 +558,7 @@ def sinterplotpLvQ_overlaid(b,noise,mind,maxd,unroorder,roorder,mylist,num_round
     ax.semilogy()
     ax.tick_params(axis='both', which='major', labelsize=sizeoffont) 
     ax.set_ylabel(f'$p_L$ per {find_pL_per}' if find_pL_per != 'd rounds' else f'$p_L$ per $d$ rounds', fontsize=sizeoffont)  
-    xlabel = 'Distance' if pltqubits == False else '$\sqrt{n}$'
+    xlabel = 'Distance' if pltqubits == False else '$\sqrt{\mathrm{Total\ qubit\ count}}$'
     ax.set_xlabel(xlabel, fontsize=sizeoffont) 
     ax.legend(fontsize=sizeoffont)
     ax.xaxis.set_major_locator(MaxNLocator(integer=True)) #forces integers on xaxis
@@ -936,7 +940,7 @@ def extract_data_for_ratios(mylist, b, ps, roorder, unroorder, romind = 2, unrom
     is_projection_below = np.full(len(ps), -4)
     
     
-    is_projection_below = np.array([-10, -10, -10, -6, -4, -2, -2, -1])
+    is_projection_below = np.array([-10, -9.5, -6, -4, -3, -2, -2, -1])
 
 
     is_projection_below = 10.0 ** is_projection_below
@@ -1201,7 +1205,11 @@ def plot_ratio(mylist, b, roorder, unroorder, romind = 2, unromind = 2, ps = Non
 
 
 
-def plot_memory_times(mylist, b, roorder, unroorder, ps = None, romind = 2, unromind = 2):
+def plot_memory_times(mylist, b, roorder, unroorder, ps = None, romind = 2, unromind = 2, plotagainst = 'rtqubits', plot_choice = 'Time'):
+
+    # plot_choice = 'Time'  # 'Rounds' or 'Time'
+    # plotagainst = 'rtqubits'  # 'rtqubits', 'qubits' or 'distance'
+
 
     if ps == None:
         ps = []
@@ -1211,10 +1219,6 @@ def plot_memory_times(mylist, b, roorder, unroorder, ps = None, romind = 2, unro
             if p not in ps:
                 ps.append(p)
 
-
-
-    plot_choice = 'Time'  # 'Rounds' or 'Time'
-    plotagainst = 'rtqubits'  # 'rtqubits', 'qubits' or 'distance'
 
     # Define colors and markers
 
@@ -1327,7 +1331,7 @@ def plot_memory_times(mylist, b, roorder, unroorder, ps = None, romind = 2, unro
     ax.grid(zorder = 0)
     ax.set_title(f'Memory Time vs. Qubit Count' if plotagainst == 'rtqubits' else f'Memory Time vs. Distance' if plotagainst == 'distance' else f'')
 
-    ax.set_xlabel("$\sqrt{n}$" if plotagainst == 'rtqubits' else 'Qubit Count' if plotagainst == 'qubits' else 'Distance' if plotagainst == 'distance' else '')
+    ax.set_xlabel('$\sqrt{\mathrm{Total\ qubit\ count}}$' if plotagainst == 'rtqubits' else 'Qubit Count' if plotagainst == 'qubits' else 'Distance' if plotagainst == 'distance' else '')
     ax.set_ylabel(f"{plot_choice}{' (s)' if plot_choice == 'Time' else ''} before $p_L = p$")
 
     # Create custom legend handles for the lines
@@ -1343,8 +1347,8 @@ def plot_memory_times(mylist, b, roorder, unroorder, ps = None, romind = 2, unro
 
     # Create custom handles for rotated and unrotated
     custom_handles = [
-        plt.Line2D([], [], color='k', marker='o', linestyle='', label='Unrotated'),
-        plt.Line2D([], [], color='k', marker='^', linestyle='', label='Rotated')
+        plt.Line2D([], [], color='k', marker='^', linestyle='', label='Rotated'),
+        plt.Line2D([], [], color='k', marker='o', linestyle='', label='Unrotated')
     ]
 
     # Create the legend
@@ -1527,10 +1531,19 @@ def plot_teraquop(mylist, b, roorder, unroorder, ps = None,  noise_model = 'SD',
 
             # d = (yval - b_fit) / m_fit # the teraquop distance
             rtq = (yval - b_fit) / m_fit # the teraquop qubit count
+
             q = rtq ** 2
 
             Ertq = rtq * np.sqrt(( E_b / (yval - b_fit) )**2 + (E_m / m_fit)**2)
             Eq = 2 * rtq * Ertq
+
+
+            if noise == 0.001:
+                print(rotation)
+                print(q)
+                print(Eq)
+
+
 
             if rotation == 'ro':
                 d = np.sqrt((1 + q) / 2)
@@ -1631,7 +1644,7 @@ def plot_teraquop(mylist, b, roorder, unroorder, ps = None,  noise_model = 'SD',
         ax_inset.set_yscale('log')
         ax_inset.tick_params(axis='both', which='major', labelsize=fontsize)
         ax_inset.tick_params(axis='both', which='minor', labelsize=fontsize)
-        ax_inset.set_title(f'With Distances Rounded Up', fontsize=fontsize)
+        ax_inset.set_title(f'Rounded up to next $d$', fontsize=fontsize)
         plt.savefig(f'plots/teraquops/teraquop_plot_mem_{B}_ro{roorder}_unro{unroorder}.pdf', format='pdf')
         plt.show()
 
@@ -1650,15 +1663,15 @@ def plot_teraquop(mylist, b, roorder, unroorder, ps = None,  noise_model = 'SD',
 
 
 
-def fit_scaling_and_plot(combined_list, distances, basis, roorder, unroorder, minp = 0, maxp = 1, romind = 2, romaxd = 1000, unromind = 2, unromaxd = 1000, uncertainty_weighting_option = 2, optional_plot = True, ylims = [None, None]):
+def fit_scaling_and_plot(combined_list, distances, basis, roorder, unroorder, minp = 0, maxp = 1, romind = 2, romaxd = 1000, unromind = 2, unromaxd = 1000, weighting_option = 2, optional_plot = True, plot_fits = True, ylims = [None, None], ignore_minds = False):
 
     # In paper used romind = 8, unromind = 6, (distances below this didn't fit scaling)
     # romaxd = 22, unromaxd = 17  (didn't have enough data for distances above these)
 
-    equation = r"\text{Fitting to:}\ \ \ p_L = \alpha \left( p/\beta \right)^{\gamma d\ -\ \delta}"
-    display(Math(equation))
+    # equation = r"\text{Fitting to:}\ \ \ p_L = \alpha \left( p/\beta \right)^{\gamma d\ -\ \delta}"
+    # display(Math(equation))
 
-    # uncertainty_weighting_option 
+    # weighting_option (for uncertainties)
     # option 1: weight each point based on its uncertainty in subsequent calculations
 
     # Other option, considering that using option 1 means your function fits will be dragged to fit low distances and low error rates because these are the points you have the most data for with the lowest uncertainty. This biases the fit to not be as relevant to higher distances and lower p values:
@@ -1723,13 +1736,16 @@ def fit_scaling_and_plot(combined_list, distances, basis, roorder, unroorder, mi
     find_pL_per = 'd rounds'
 
     # colors = colors # different colour for every distance
-    
-    colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf', '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'] # matplot default colours
+    if ignore_minds == True:
+        romind = 2
+        unromind = 2
+        colors = ['rebeccapurple', 'royalblue', 'slategray','mediumseagreen','cornflowerblue', '#ff7f0e', '#d62728','#2ca02c', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', 'steelblue','#673AB7', '#FF0000', '#FFA07A','c','m','gold','magenta']
+    else:
+        colors = ['cornflowerblue', '#ff7f0e', '#d62728','#2ca02c', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', 'steelblue','#673AB7', '#FF0000', '#FFA07A','c','m','gold','magenta']
 
 
 
-
-    for rot, order, mem in zip(['unro','ro'],[unroorder,roorder],[basis,basis]):
+    for rot, order, mem in zip(['ro','unro'],[roorder,unroorder],[basis,basis]):
 
         if distances == 'even':
             mylist = my_even_list
@@ -1857,7 +1873,7 @@ def fit_scaling_and_plot(combined_list, distances, basis, roorder, unroorder, mi
             yvalues = np.array(this_ds_log10_pLs)
             yvalues_uncertainties = np.array(this_ds_uncertainties_in_log10_pLs)
             
-            if uncertainty_weighting_option == 1:
+            if weighting_option == 1:
                 popt, pcov = optimize.curve_fit(linear_func, xvalues, yvalues, sigma = this_ds_uncertainties_in_log10_pLs, absolute_sigma = True) 
 
                 m, b = popt
@@ -2025,7 +2041,7 @@ def fit_scaling_and_plot(combined_list, distances, basis, roorder, unroorder, mi
         # Egamma = coeff_errors[0]
         # Edelta = coeff_errors[1]
         
-        if uncertainty_weighting_option == 1:
+        if weighting_option == 1:
             # Using scipy optimize:
             popt, pcov = optimize.curve_fit(linear_func, these_ds, ms, sigma = Ems, absolute_sigma = True) 
             gamma, delta = popt
@@ -2093,8 +2109,9 @@ def fit_scaling_and_plot(combined_list, distances, basis, roorder, unroorder, mi
                 
                 ps = np.linspace(minp, maxp, len(these_ds))
                 
-                linestyle = '--'
-                plt.plot(ps, pL(ps, d), linestyle = linestyle, linewidth = 1, color = 'grey', label = 'Curve fit' if j == 0 else None, zorder = 4)
+                if plot_fits == True:
+                    linestyle = '--'
+                    plt.plot(ps, pL(ps, d), linestyle = linestyle, linewidth = 1, color = 'grey', label = 'Curve fit' if j == 0 else None, zorder = 4)
             
                 index += 1
 
