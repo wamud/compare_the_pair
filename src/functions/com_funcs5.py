@@ -7,6 +7,7 @@ import math
 import re
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
+from matplotlib.ticker import LogLocator, LogFormatter
 import sinter
 import matplotlib.scale as scale
 import scipy.stats
@@ -14,7 +15,6 @@ import numpy as np
 import warnings
 import sys
 import scipy.optimize as optimize
-
 
 def objective_function(point, lines):
     """Objective function to minimize - sum of squared distances to lines."""
@@ -191,10 +191,13 @@ def plot_thresholds(mylist, roorder, unroorder, romind = 2, unromind = 2, minp =
         ax.add_artist(second_legend)
         # ax.grid(True, which='both', zorder = 0)
 
-        ax.set_title(f'Rotated') if rot == 'ro' else ax.set_title(f'Unrotated')
-        
+
+    
+        ax.set_title(f'Rotated') if rot == 'ro' else ax.set_title(f'Unrotated')    
+ 
 
         fig.savefig(f'{output_dir}/{rot}{str(order)}_threshold_plot.pdf', format='pdf')
+
 
 
 
@@ -256,6 +259,7 @@ def sinterplotthreshold_v2(ax,mylist,order,rot,mem,num_rounds,find_pL_per,romind
     
     ax.grid(True, which='both',zorder = 0)
 
+
     sinter.plot_error_rate(   
         ax=ax,
         stats=mylist,
@@ -300,10 +304,23 @@ def sinterplotthreshold_v2(ax,mylist,order,rot,mem,num_rounds,find_pL_per,romind
         # line_fits = ('log','log'), # need updated sinter for this
     )
 
+    
     ax.loglog()
+
+    
     ax.set_title(f'{rot}tated, {order} order')
     ax.set_ylabel(f'Logical error rate ($p_L$) per $d$ rounds') if find_pL_per == 'd rounds' else ax.set_ylabel(f'Logical error rate ($p_L$) per {find_pL_per}')
     ax.set_xlabel(f'Physical Error Rate ($p$)')
+    
+    # Get all minor tick labels and corresponding tick positions
+    minor_labels = ax.get_xticklabels(minor=True)
+
+    # Loop through minor tick labels and hide every second one
+    for i, label in enumerate(minor_labels):
+        if i % 2 == 0:  # Hide every second label
+            label.set_visible(False)
+
+
 
     return
 
@@ -1838,8 +1855,10 @@ def fit_scaling_and_plot(combined_list, distances, basis, roorder, unroorder, mi
                     continue
                 if not stat.errors:
                     continue
-                if rt != rot or o != order or b!=mem or r!=num_rounds or p > maxp:
+                if rt != rot or o != order or b!=mem or r!=num_rounds or p > maxp or p < minp:
                     continue
+
+
                 # excluding a couple points which don't have enough samples:
                 if d == 19 and rt == 'ro' and p < 0.001: 
                     continue
@@ -2142,10 +2161,222 @@ def fit_scaling_and_plot(combined_list, distances, basis, roorder, unroorder, mi
 
 
 
+def fit_threshold_scaling_and_plot(combined_list, distances, basis, roorder, unroorder, minp = 0, maxp = 1, romind = 2, romaxd = 1000, unromind = 2, unromaxd = 1000, weighting_option = 2, optional_plot = True, plot_fits = True, ylims = [None, None], ignore_minds = False):
+
+    # In paper used romind = 8, unromind = 6, (distances below this didn't fit scaling)
+    # romaxd = 22, unromaxd = 17  (didn't have enough data for distances above these)
+
+    # equation = r"\text{Fitting to:}\ \ \ p_L = \alpha \left( p/\beta \right)^{\gamma d\ -\ \delta}"
+    # display(Math(equation))
+
+    # weighting_option (for uncertainties)
+    # option 1: weight each point based on its uncertainty in subsequent calculations
+
+    # Other option, considering that using option 1 means your function fits will be dragged to fit low distances and low error rates because these are the points you have the most data for with the lowest uncertainty. This biases the fit to not be as relevant to higher distances and lower p values:
+    # 2: fit lines as if all points have equal weight but still propagate the uncertainty through into the fit parameters, meaning they have larger uncertainty. This fits better to the points at lower p and with high d, points which we care about more, but the sacrifice is that it increases the uncertainty.
 
 
 
+    # Split into even and odd distances to compare:
+    my_even_list = [] # will contain whole element
+    my_odd_list = []
+    
+    unro_combined_ds = []
+    ro_combined_ds = []
+    
+    unro_odd_ds = []
+    ro_odd_ds = []
+    
+    unro_even_ds = []
+    ro_even_ds = []
+
+    for el in combined_list:
+        d = el.json_metadata['d']
+        p = el.json_metadata['p']
+        rot = el.json_metadata['ro']
+
+        if rot == 'ro':
+            if (d%2) == 0:
+                my_even_list.append(el)
+                if d not in ro_even_ds:
+                    ro_even_ds.append(d)
+            else:
+                my_odd_list.append(el)
+                if d not in ro_odd_ds:
+                    ro_odd_ds.append(d)
+            
+            if d not in ro_combined_ds:
+                ro_combined_ds.append(d)
+
+
+        if rot == 'unro':
+            if d != 19:  # don't have enough data for this distance
+                
+                if (d%2) == 0:
+                    my_even_list.append(el)
+                    if d not in unro_even_ds:
+                        unro_even_ds.append(d)
+                else:
+                    my_odd_list.append(el)
+                    if d not in unro_odd_ds:
+                        unro_odd_ds.append(d)
+                
+                if d not in unro_combined_ds:
+                    unro_combined_ds.append(d)
 
 
 
+    print(f"\ndistances = {distances}")
+
+    
+    
+    num_rounds = '3d'; 
+    find_pL_per = 'd rounds'
+
+    # colors = colors # different colour for every distance
+    if ignore_minds == True:
+        romind = 2
+        unromind = 2
+        colors = ['rebeccapurple', 'royalblue', 'slategray','mediumseagreen','cornflowerblue', '#ff7f0e', '#d62728','#2ca02c', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', 'steelblue','#673AB7', '#FF0000', '#FFA07A','c','m','gold','magenta']
+    else:
+        colors = ['cornflowerblue', '#ff7f0e', '#d62728','#2ca02c', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', 'steelblue','#673AB7', '#FF0000', '#FFA07A','c','m','gold','magenta']
+
+
+
+    for rot, order, mem in zip(['ro','unro'],[roorder,unroorder],[basis,basis]):
+
+        if distances == 'even':
+            mylist = my_even_list
+
+            if rot == 'ro':
+                ds = ro_even_ds
+            elif rot == 'unro':
+                ds = unro_even_ds
+        
+        
+        elif distances == 'odd':
+            mylist = my_odd_list
+            
+            if rot == 'ro':
+                ds = ro_odd_ds
+            elif rot == 'unro':
+                ds = unro_odd_ds
+            
+        elif distances == 'combined':
+            mylist = combined_list
+            
+            if rot == 'ro':
+                ds = ro_combined_ds
+            elif rot == 'unro':
+                ds = unro_combined_ds
+        else:
+            print("choose distances = 'odd', 'even' or 'combined'")
+
+
+        # Order the ds (only makes a difference to plot legend)
+        ds = np.array(ds)
+        ds = np.sort(ds)
+
+        # print(f"ds = {ds}")
+        
+        if rot == 'ro':
+
+            mind = max(romind, min(ds))
+            maxd = min(romaxd, max(ds))
+
+
+        if rot == 'unro':
+            mind = max(unromind, min(ds))
+            maxd = min(unromaxd, max(ds))
+        
+
+
+        print(f"\n{rot} {mem} {order}\n")
+        # print(f"mind = {mind}, maxd = {maxd}")
+
+        # For a given d, I need to run over all the stats to fit a curve for log10(pL) = m * log10(p) + b
+
+        lines = []
+        Ems = []
+        Ebs = []
+        new_ds = []
+        new_ds_ps = []
+
+        # Below is based on extract4teraquop, but that fit to pL vs. d. Here we fit to pL vs. p
+        index = 0 
+
+        ps_all = []
+        pLs_all = []
+
+        for d in ds: # find m and b for each distance's log10(pL) = m * log10(p) + b 
+
+            if d < mind or d > maxd:
+                continue
+            
+            new_ds.append(d)
+
+            this_ds_pLs = []
+            this_ds_log10_pLs = []
+
+            this_ds_ps = []
+            this_ds_log10_ps = []
+
+            this_ds_pLs_RMSE = []
+            
+            this_ds_uncertainties_in_log10_pLs = []
+
+            for stat in mylist:
+                p = stat.json_metadata['p']
+                b = stat.json_metadata['b']
+                rt = stat.json_metadata['ro']
+                stat_d = stat.json_metadata['d']
+                o = stat.json_metadata['o']
+                r = stat.json_metadata['r']
+
+                if stat_d != d:
+                    continue
+                if not stat.errors:
+                    continue
+                if rt != rot or o != order or b!=mem or r!=num_rounds or p > maxp or p < minp:
+                    continue
+
+
+                # excluding a couple points which don't have enough samples:
+                if d == 19 and rt == 'ro' and p < 0.001: 
+                    continue
+                if d == 16 and rt == 'unro' and p < 0.001:
+                    continue
+
+                this_ds_ps.append(p)
+                this_ds_log10_ps.append(np.log10(p))
+
+
+                pL, RMSE = calculate_pL(stat)
+
+                this_ds_pLs.append(pL)
+                this_ds_pLs_RMSE.append(RMSE)
+
+                this_ds_log10_pLs.append(np.log10(pL))
+                this_ds_uncertainties_in_log10_pLs.append(RMSE / (np.log(10) * pL)) 
+
+            # print(this_ds_ps)
+
+            if len(this_ds_ps) == 0:
+                line_number = inspect.currentframe().f_lineno
+                # sys.exit(f"Line {line_number + 1}: no circuits matched d = {d}, b = {mem}, rt = {rot} , o = {order} in input csv file.")
+                print(f"no circuits matched d = {d}, b = {mem}, rt = {rot} , o = {order} in input csv file.")
+                continue
+                # break
+
+            # Now, for this d, we have p and pL
+
+            ps_all.append(this_ds_ps)
+            pLs_all.append(this_ds_pLs)
+
+
+        
+        for i in range(len(new_ds)):
+            print("d = ",new_ds[i])
+            print("ps = ",ps_all[i])
+            print("pLs = ", pLs_all[i])
 
