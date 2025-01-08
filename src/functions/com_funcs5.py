@@ -26,7 +26,7 @@ def distance_point_to_line(point, line):
     x, y = point
     return np.abs(a * x + b * y + c) / np.sqrt(a ** 2 + b ** 2)
 
-def sinterplotthreshold(ax,mylist,order,rot,mem,num_rounds,find_pL_per,mind=0,maxd=100,maxp=1,minp=0.001,plot_inset_values = False):
+def sinterplotthreshold(ax,mylist,order,rot,mem,num_rounds,find_pL_per,mind=0,maxd=100,maxp=1,minp=0.001,near_threshold_values = False):
 
     # sinter.plot_error_rate: https://github.com/quantumlib/Stim/wiki/Sinter-v1.12-Python-API-Reference#sinter.plot_error_rate:
 
@@ -65,8 +65,9 @@ def sinterplotthreshold(ax,mylist,order,rot,mem,num_rounds,find_pL_per,mind=0,ma
 
             
 
-            (not (0.0056<=s.json_metadata['p']<=0.0058) if not plot_inset_values else True) and
-            (not (0.0050<s.json_metadata['p']<0.0055) if not plot_inset_values else True) and
+            (not (0.0056<=s.json_metadata['p']<=0.0058) if not near_threshold_values else True) and
+            (not (0.0050<s.json_metadata['p']<0.0055) if not near_threshold_values else True) and
+            (not (0.0045<s.json_metadata['p']<0.0050) if not near_threshold_values else True) and
             (s.json_metadata['b']==mem1 or s.json_metadata['b']==mem2) and
 
             (rot in (s.json_metadata.get('ro'), s.json_metadata.get('rt'))) and
@@ -145,7 +146,7 @@ def bin_CNOT_orders(mylist):
 
 
 
-def plot_thresholds(mylist, roorder, unroorder, romind = 2, unromind = 2, minp = 0, maxp = 1,  output_dir='plots/thresholds',romaxd = 1000, unromaxd = 1000, find_pL_per = 'd rounds', ylims = [None, None], plot_inset_values = False, ignore_minds = False):
+def plot_thresholds(mylist, roorder, unroorder, romind = 2, unromind = 2, minp = 0, maxp = 1,  output_dir='plots/thresholds',romaxd = 1000, unromaxd = 1000, find_pL_per = 'd rounds', ylims = [None, None], near_threshold_values = False, ignore_minds = False):
 
     orders = [unroorder, roorder]
     maxds = [unromaxd, romaxd]
@@ -159,7 +160,7 @@ def plot_thresholds(mylist, roorder, unroorder, romind = 2, unromind = 2, minp =
 
         for mem in 'xz':
             plt.gca().set_prop_cycle(None)  # reset the colour cycle
-            sinterplotthreshold_v2(ax,mylist,order,rot,mem,'3d',find_pL_per,romind, unromind, maxd, minp = minp, maxp = maxp,plot_inset_values = plot_inset_values, ignore_minds = ignore_minds)
+            sinterplotthreshold_v2(ax,mylist,order,rot,mem,'3d',find_pL_per,romind, unromind, maxd, minp = minp, maxp = maxp,near_threshold_values = near_threshold_values, ignore_minds = ignore_minds)
             ax.set_ylim(ylims[0], ylims[1])
 
         # Get the handles and labels
@@ -201,7 +202,7 @@ def plot_thresholds(mylist, roorder, unroorder, romind = 2, unromind = 2, minp =
 
 
 
-def sinterplotthreshold_v2(ax,mylist,order,rot,mem,num_rounds,find_pL_per,romind = 2, unromind = 2, maxd = 100,maxp=1, minp=0, plot_inset_values = False,ignore_minds = False):
+def sinterplotthreshold_v2(ax,mylist,order,rot,mem,num_rounds,find_pL_per,romind = 2, unromind = 2, maxd = 100,maxp=1, minp=0, near_threshold_values = False,ignore_minds = False):
     # v2 calculates what the start colour for each graph should be based on romind (rotated code, minimum distance) and unromind (unrotated code minimum distance) to make the same colours for the same distances
 
     # sinter.plot_error_rate: https://github.com/quantumlib/Stim/wiki/Sinter-v1.12-Python-API-Reference#sinter.plot_error_rate:
@@ -273,8 +274,8 @@ def sinterplotthreshold_v2(ax,mylist,order,rot,mem,num_rounds,find_pL_per,romind
 
             
 
-            (not (0.0056<=s.json_metadata['p']<=0.0058) if not plot_inset_values else True) and
-            (not (0.0050<s.json_metadata['p']<0.0055) if not plot_inset_values else True) and
+            (not (0.0056<=s.json_metadata['p']<=0.0058) if not near_threshold_values else True) and
+            (not (0.0050<s.json_metadata['p']<0.0055) if not near_threshold_values else True) and
             
             (s.json_metadata['b']==mem1 or s.json_metadata['b']==mem2) and
 
@@ -315,12 +316,14 @@ def sinterplotthreshold_v2(ax,mylist,order,rot,mem,num_rounds,find_pL_per,romind
     # Get all minor tick labels and corresponding tick positions
     minor_labels = ax.get_xticklabels(minor=True)
 
-    # Loop through minor tick labels and hide every second one
-    for i, label in enumerate(minor_labels):
-        if i % 2 == 0:  # Hide every second label
-            label.set_visible(False)
+    # # Loop through minor tick labels and hide every second one
+    # for i, label in enumerate(minor_labels):
+    #     if i % 2 == 0:  # Hide every second label
+    #         label.set_visible(False)
 
-
+    # Loop through minor tick labels and set the rotation
+    for label in minor_labels:
+        label.set_rotation(45)  # Rotate by 45 degrees
 
     return
 
@@ -2425,6 +2428,6 @@ def fit_threshold_scaling_and_plot(combined_list, distances, basis, roorder, unr
         print(f"v = {v:.6f} ± {v_err:.6f}")
 
     if optional_plot:
-        plot_thresholds(mylist, roorder, unroorder, minp = minp, maxp = maxp, romind = romind, ylims = ylims, unromind = unromind, plot_inset_values = True) # setting plot_inset_values to True to see values very close to threshold
+        plot_thresholds(mylist, roorder, unroorder, minp = minp, maxp = maxp, romind = romind, ylims = ylims, unromind = unromind, near_threshold_values = True) # setting near_threshold_values to True to see values very close to threshold
 
         
