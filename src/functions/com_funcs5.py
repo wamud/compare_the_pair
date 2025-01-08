@@ -2243,7 +2243,7 @@ def fit_threshold_scaling_and_plot(combined_list, distances, basis, roorder, unr
 
 
 
-    for rot, order, mem in zip(['ro','unro'],[roorder,unroorder],[basis,basis]):
+    for rot, order, mem in zip(['unro','ro'],[unroorder,roorder],[basis,basis]):
 
         if distances == 'even':
             mylist = my_even_list
@@ -2307,6 +2307,7 @@ def fit_threshold_scaling_and_plot(combined_list, distances, basis, roorder, unr
 
         ps_all = []
         pLs_all = []
+        RMSE_all = []
 
         for d in ds: # find m and b for each distance's log10(pL) = m * log10(p) + b 
 
@@ -2372,11 +2373,58 @@ def fit_threshold_scaling_and_plot(combined_list, distances, basis, roorder, unr
 
             ps_all.append(this_ds_ps)
             pLs_all.append(this_ds_pLs)
+            RMSE_all.append(this_ds_pLs_RMSE)
 
+
+        # # Now we fit using a universal scaling function (arxiv.org1311.5003) aka critical scaling ansatz (arXiv:2101.04125v3)
+
+        # Define the model function
+        def model(p, d, A, B, C, p_th, v): # quadratic universal scaling function
+            return A + B * (p - p_th) * d**(1/v) + C * (p - p_th)**2 * d**(2/v)
+
+            # could add cubic, quartic, quintic, sextic, septic, octic, nonic, decic etc. terms but as the p values we are fitting to are close to p_th then these quickly vanish.
+
+        # Function to flatten the data into arrays for fitting
+        def prepare_data(new_ds, ps_all, pLs_all, rmse_all):
+            ps_flat, d_flat, pLs_flat, rmse_flat = [], [], [], []
+            for i, d in enumerate(new_ds):
+                ps_flat.extend(ps_all[i])
+                d_flat.extend([d] * len(ps_all[i]))
+                pLs_flat.extend(pLs_all[i])
+                rmse_flat.extend(rmse_all[i])
+            return np.array(ps_flat), np.array(d_flat), np.array(pLs_flat), np.array(rmse_flat)
+
+        ps_flat, d_flat, pLs_flat, rmse_flat = prepare_data(new_ds, ps_all, pLs_all, RMSE_all)
+
+
+        # Initial guesses for parameters: A, B, C, p_th, v
+        initial_guesses = [0, 0, 0, 0.0055, 1.05]
+
+        # Example bounds: A, B, C, p_th, v
+        lower_bounds = [-np.inf, -np.inf, -np.inf, 0.005, 0.8]
+        upper_bounds = [np.inf, np.inf, np.inf, 0.006, 1.5]
+
+        popt, pcov = optimize.curve_fit(
+            lambda data, A, B, C, p_th, v: model(data[0], data[1], A, B, C, p_th, v),
+            (ps_flat, d_flat),
+            pLs_flat,
+            sigma=rmse_flat,
+            p0=initial_guesses,
+            bounds=(lower_bounds, upper_bounds),
+            maxfev=5000
+        )
+
+        # Extract fitted parameters and their uncertainties
+        A, B, C, p_th, v = popt
+        perr = np.sqrt(np.diag(pcov))  # Parameter uncertainties
+        A_err, B_err, C_err, p_th_err, v_err = perr
+
+        # Print results
+
+        print(f"p_th = {p_th:.6f} ± {p_th_err:.6f}")
+        print(f"v = {v:.6f} ± {v_err:.6f}")
+
+    if optional_plot:
+        plot_thresholds(mylist, roorder, unroorder, minp = minp, maxp = maxp, romind = romind, ylims = ylims, unromind = unromind, plot_inset_values = True) # setting plot_inset_values to True to see values very close to threshold
 
         
-        for i in range(len(new_ds)):
-            print("d = ",new_ds[i])
-            print("ps = ",ps_all[i])
-            print("pLs = ", pLs_all[i])
-
