@@ -578,7 +578,7 @@ def sinterplotpLvQ_overlaid(b,noise,mind,maxd,unroorder,roorder,mylist,num_round
     ax.semilogy()
     ax.tick_params(axis='both', which='major', labelsize=sizeoffont) 
     ax.set_ylabel(f'$p_L$ per {find_pL_per}' if find_pL_per != 'd rounds' else f'$p_L$ per $d$ rounds', fontsize=sizeoffont)  
-    xlabel = 'Distance' if pltqubits == False else '$\sqrt{\mathrm{Total\ qubit\ count}}$'
+    xlabel = 'Distance' if pltqubits == False else r'$\sqrt{\mathrm{Total\ qubit\ count}}$'
     ax.set_xlabel(xlabel, fontsize=sizeoffont) 
     ax.legend(fontsize=sizeoffont)
     ax.xaxis.set_major_locator(MaxNLocator(integer=True)) #forces integers on xaxis
@@ -902,7 +902,7 @@ def sinterplotpLvD_forteraquop(b,noise,mind,maxd,unroorder,roorder,mylist,num_ro
     ax.semilogy()
     ax.tick_params(axis='both', which='major', labelsize=sizeoffont) 
     ax.set_ylabel(f'$p_L$ per {find_pL_per}' if find_pL_per != 'd rounds' else f'$p_L$ per $d$ rounds', fontsize=sizeoffont)  
-    xlabel = 'Distance' if pltqubits == False else '$\sqrt{Qubit\ Count}$'
+    xlabel = 'Distance' if pltqubits == False else r'$\sqrt{Qubit\ Count}$'
     ax.set_xlabel(xlabel, fontsize=sizeoffont) 
     ax.legend(fontsize=sizeoffont)
     ax.grid(zorder = 0)
@@ -1351,7 +1351,7 @@ def plot_memory_times(mylist, b, roorder, unroorder, ps = None, romind = 2, unro
     ax.grid(zorder = 0)
     ax.set_title(f'Memory Time vs. Qubit Count' if plotagainst == 'rtqubits' else f'Memory Time vs. Distance' if plotagainst == 'distance' else f'')
 
-    ax.set_xlabel('$\sqrt{\mathrm{Total\ qubit\ count}}$' if plotagainst == 'rtqubits' else 'Qubit Count' if plotagainst == 'qubits' else 'Distance' if plotagainst == 'distance' else '')
+    ax.set_xlabel(r'$\sqrt{\mathrm{Total\ qubit\ count}}$' if plotagainst == 'rtqubits' else 'Qubit Count' if plotagainst == 'qubits' else 'Distance' if plotagainst == 'distance' else '')
     ax.set_ylabel(f"{plot_choice}{' (s)' if plot_choice == 'Time' else ''} before $p_L = p$")
 
     # Create custom legend handles for the lines
