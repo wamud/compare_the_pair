@@ -273,9 +273,10 @@ def sinterplotthreshold_v2(ax,mylist,order,rot,mem,num_rounds,find_pL_per,romind
             s.json_metadata['p'] >= minp and
 
             
-
+            # No need to plot the additional values I plotted near the threshold if doing a large plot.
             (not (0.0056<=s.json_metadata['p']<=0.0058) if not near_threshold_values else True) and
             (not (0.0050<s.json_metadata['p']<0.0055) if not near_threshold_values else True) and
+            (not (0.0045<s.json_metadata['p']<0.0050) if not near_threshold_values else True) and
             
             (s.json_metadata['b']==mem1 or s.json_metadata['b']==mem2) and
 
