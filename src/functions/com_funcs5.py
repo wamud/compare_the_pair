@@ -1190,7 +1190,7 @@ def plot_ratio(mylist, b, roorder, unroorder, romind = 2, unromind = 2, ps = Non
     for line in legend.get_lines():
         line.set_linewidth(2)  # Adjust the linewidth here
 
-    plt.ylabel('$n_r\ /\ n_u$')
+    plt.ylabel(r'$n_r\ /\ n_u$')
     plt.xlabel(f'$p_L$')
     plt.title(f'Qubit Count Ratio')
     # plt.grid()
