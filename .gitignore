@@ -1,5 +1,4 @@
 src/plots/
-src/circuits/
 src/.ipynb_checkpoints/
 src/functions/__pycache__/
 .jupyter_ystore.db
