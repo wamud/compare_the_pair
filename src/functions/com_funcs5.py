@@ -1749,7 +1749,7 @@ def fit_scaling_and_plot(combined_list, distances, basis, roorder, unroorder, mi
 
 
 
-    print(f"\ndistances = {distances}")
+    # print(f"\ndistances = {distances}")
 
     
     
@@ -1801,6 +1801,10 @@ def fit_scaling_and_plot(combined_list, distances, basis, roorder, unroorder, mi
         ds = np.sort(ds)
 
         # print(f"ds = {ds}")
+
+        if len(ds) < 2:
+            print(f"Need at least two {distances} distances to perform fit. Skipping this function.")
+            return
         
         if rot == 'ro':
 

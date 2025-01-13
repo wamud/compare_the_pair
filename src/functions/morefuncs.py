@@ -2,10 +2,11 @@ import stim
 import re
 import os
 
-def extract_qubit_numbers_and_p_value(contents, file_path):
-    # Extracting 'p' value from filename
-    p_value_match = re.search(r'p=([\d\.]+)', file_path)
-    p_value = p_value_match.group(1) if p_value_match else '0.001'  # Default value if not found
+def extract_qubit_numbers(contents, file_path):
+
+    # # Extracting 'p' value from filename
+    # p_value_match = re.search(r'p=([\d\.]+)', file_path)
+    # p_value = p_value_match.group(1) if p_value_match else print("p value not found from file name")
 
     # Extracting qubit numbers
     qubit_numbers = set()
@@ -17,13 +18,13 @@ def extract_qubit_numbers_and_p_value(contents, file_path):
         elif line.startswith("TICK"):
             break  # Stop reading qubit numbers after the first TICK
 
-    return qubit_numbers, p_value
+    return qubit_numbers #, p_value
 
-def process_file(file_path):
+def process_file(file_path, p_value):
     with open(file_path, 'r') as file:
         contents = file.readlines()
 
-    qubit_numbers, p_value = extract_qubit_numbers_and_p_value(contents, file_path)
+    qubit_numbers = extract_qubit_numbers(contents, file_path)
 
     modified_contents = []
     current_section = []
@@ -291,9 +292,9 @@ def add_idling_errors_and_save_circuit(thecircuit, b, d, p, ro, x, z):
     path = f"circuits/temp_circuit.stim" # circuit without idling errors
     thecircuit.to_file(path) #saves circuit as a file
 
-    modified_file_contents = process_file(path) # adds some idling errors 
+    modified_file_contents = process_file(path, p) # adds some idling errors 
     
-    newpath = f"circuits/SD/{b}/d={d},p={p},b={b},r=3d,ro={ro},o={x[0]}{x[1]}{x[2]}{x[3]}{z[0]}{z[1]}{z[2]}{z[3]},idl=y.stim"
+    newpath = f"circuits/SD/{b}/d={d},p={p},noise=SD,b={b},r=3d,ro={ro},o={x[0]}{x[1]}{x[2]}{x[3]}{z[0]}{z[1]}{z[2]}{z[3]},idl=y.stim"
 
     with open(newpath, 'w') as file:
         file.writelines(modified_file_contents)
@@ -306,7 +307,7 @@ def add_idling_errors_and_save_circuit(thecircuit, b, d, p, ro, x, z):
 
 def make_CXSI_circuit(b, d, p, ro, x, z):
     
-    newpath = f"circuits/SD/{b}/d={d},p={p},b={b},r=3d,ro={ro},o={x[0]}{x[1]}{x[2]}{x[3]}{z[0]}{z[1]}{z[2]}{z[3]},idl=y.stim" # needs to be the same as 'newpath' in add_idling_errors_and_save_circuit
+    newpath = f"circuits/SD/{b}/d={d},p={p},noise=SD,b={b},r=3d,ro={ro},o={x[0]}{x[1]}{x[2]}{x[3]}{z[0]}{z[1]}{z[2]}{z[3]},idl=y.stim" # needs to be the same as 'newpath' in add_idling_errors_and_save_circuit
     
     
     CXSI_file_path = f"circuits/SI/{b}/d={d},p={p},noise=CXSI,b={b},r=3d,ro={ro},o={x[0]}{x[1]}{x[2]}{x[3]}{z[0]}{z[1]}{z[2]}{z[3]},idl=y.stim"
