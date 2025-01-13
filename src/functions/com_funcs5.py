@@ -1401,15 +1401,15 @@ def plot_memory_times(mylist, b, roorder, unroorder, ps = None, romind = 2, unro
 def plot_teraquop(mylist, b, roorder, unroorder, ps = None,  noise_model = 'SD', romind = 2, unromind = 2, optional_plot = False, teraquop_inset = False):
 
 
-# # Load the stats:
-# if noise_model == 'SD':
-#     ps = [0.0005,0.0007,0.001,0.0015, 0.002, 0.003,0.004,0.005,0.0055]
-#     with open(f'pickled_stats/SD_combined_importedstats.pickle', 'rb') as file:
-#         mylist = pickle.load(file)
-# elif noise_model == 'CXSI':
-#     ps = [0.0005,0.001, 0.002, 0.003,0.004,0.005]
-#     with open(f'pickled_stats/CXSI_importedstats.pickle', 'rb') as file:
-#         mylist = pickle.load(file)
+    # # Load the stats:
+    # if noise_model == 'SD':
+    #     ps = [0.0005,0.0007,0.001,0.0015, 0.002, 0.003,0.004,0.005,0.0055]
+    #     with open(f'pickled_stats/SD_combined_importedstats.pickle', 'rb') as file:
+    #         mylist = pickle.load(file)
+    # elif noise_model == 'CXSI':
+    #     ps = [0.0005,0.001, 0.002, 0.003,0.004,0.005]
+    #     with open(f'pickled_stats/CXSI_importedstats.pickle', 'rb') as file:
+    #         mylist = pickle.load(file)
 
         
     if ps == None:
@@ -1548,6 +1548,13 @@ def plot_teraquop(mylist, b, roorder, unroorder, ps = None,  noise_model = 'SD',
             m_fit = gradient
             E_m = E_gradient
 
+            if math.isinf(E_b):
+                print(f"Infinite error in intercept for line through p = {noise}, rot = {rotation}, b = {b} => need more data points")
+                return
+            if math.isinf(E_m):
+                print(f"Infinite error in gradient for line through p = {noise}, rot = {rotation}, b = {b}")
+                return
+
             yval = -12 # on a log10 plot this corresponds to a pL of 10^-12
 
             # d = (yval - b_fit) / m_fit # the teraquop distance
@@ -1557,6 +1564,7 @@ def plot_teraquop(mylist, b, roorder, unroorder, ps = None,  noise_model = 'SD',
 
             Ertq = rtq * np.sqrt(( E_b / (yval - b_fit) )**2 + (E_m / m_fit)**2)
             Eq = 2 * rtq * Ertq
+
 
 
             if noise == 0.001:
