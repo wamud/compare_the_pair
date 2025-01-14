@@ -84,13 +84,13 @@ def sinterplotthreshold(ax,mylist,order,rot,mem,num_rounds,find_pL_per,mind=0,ma
 
             (s.json_metadata['p'] >= 0.001 if (s.json_metadata['d']>=19 and s.json_metadata['ro']=='ro') else s.json_metadata['p']<=maxp) and
 
-            # CXSI noise 
-            # (s.json_metadata['p'] >= 0.001 if (s.json_metadata['d']>=17 and s.json_metadata['ro']=='ro' and s.json_metadata['noise']=='CXSI') else s.json_metadata['p']<=maxp) and
-            # (s.json_metadata['p'] >= 0.0007 if (s.json_metadata['d']==15 and s.json_metadata['ro']=='ro' and s.json_metadata['noise']=='CXSI') else s.json_metadata['p']<=maxp) and
+            # SI noise 
+            # (s.json_metadata['p'] >= 0.001 if (s.json_metadata['d']>=17 and s.json_metadata['ro']=='ro' and s.json_metadata['noise']=='SI') else s.json_metadata['p']<=maxp) and
+            # (s.json_metadata['p'] >= 0.0007 if (s.json_metadata['d']==15 and s.json_metadata['ro']=='ro' and s.json_metadata['noise']=='SI') else s.json_metadata['p']<=maxp) and
             
-            # (s.json_metadata['p'] >= 0.0007 if (s.json_metadata['d']==13 and s.json_metadata['ro']=='unro' and s.json_metadata['noise']=='CXSI') else s.json_metadata['p']<=maxp) and
-            # (s.json_metadata['p'] >= 0.001 if (s.json_metadata['d']==15 and s.json_metadata['ro']=='unro' and s.json_metadata['noise']=='CXSI') else s.json_metadata['p']<=maxp) and
-            # (s.json_metadata['p'] >= 0.002 if (s.json_metadata['d']==17 and s.json_metadata['ro']=='unro' and s.json_metadata['noise']=='CXSI') else s.json_metadata['p']<=maxp) and
+            # (s.json_metadata['p'] >= 0.0007 if (s.json_metadata['d']==13 and s.json_metadata['ro']=='unro' and s.json_metadata['noise']=='SI') else s.json_metadata['p']<=maxp) and
+            # (s.json_metadata['p'] >= 0.001 if (s.json_metadata['d']==15 and s.json_metadata['ro']=='unro' and s.json_metadata['noise']=='SI') else s.json_metadata['p']<=maxp) and
+            # (s.json_metadata['p'] >= 0.002 if (s.json_metadata['d']==17 and s.json_metadata['ro']=='unro' and s.json_metadata['noise']=='SI') else s.json_metadata['p']<=maxp) and
 
             (not s.json_metadata['d'] == 19 if s.json_metadata.get('ro', s.json_metadata.get('rot', None)) == 'unro' else True) and
             s.json_metadata['o']==order,
@@ -1406,7 +1406,7 @@ def plot_teraquop(mylist, b, roorder, unroorder, ps = None,  noise_model = 'SD',
     #     ps = [0.0005,0.0007,0.001,0.0015, 0.002, 0.003,0.004,0.005,0.0055]
     #     with open(f'pickled_stats/SD_combined_importedstats.pickle', 'rb') as file:
     #         mylist = pickle.load(file)
-    # elif noise_model == 'CXSI':
+    # elif noise_model == 'SI':
     #     ps = [0.0005,0.001, 0.002, 0.003,0.004,0.005]
     #     with open(f'pickled_stats/CXSI_importedstats.pickle', 'rb') as file:
     #         mylist = pickle.load(file)

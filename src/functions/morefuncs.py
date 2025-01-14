@@ -256,12 +256,12 @@ def add_idling_errors_and_save_circuit(thecircuit, b, d, p, ro, x, z,directory):
         os.remove(path)
 
 
-def make_CXSI_circuit(b, d, p, ro, x, z, directory):
+def make_SI_circuit(b, d, p, ro, x, z, directory):
     
     newpath = f"{directory}/SD/{b}/d={d},p={p},noise=SD,b={b},r=3d,ro={ro},o={x[0]}{x[1]}{x[2]}{x[3]}{z[0]}{z[1]}{z[2]}{z[3]},idl=y.stim" # needs to be the same as 'newpath' in add_idling_errors_and_save_circuit
     
     
-    CXSI_file_path = f"{directory}/SI/{b}/d={d},p={p},noise=CXSI,b={b},r=3d,ro={ro},o={x[0]}{x[1]}{x[2]}{x[3]}{z[0]}{z[1]}{z[2]}{z[3]},idl=y.stim"
-    modify_error_probabilities(newpath,CXSI_file_path)
-    modify_x_error_arguments(CXSI_file_path,CXSI_file_path)
-    modify_depol1_argument(CXSI_file_path,CXSI_file_path)
+    SI_file_path = f"{directory}/SI/{b}/d={d},p={p},noise=SI,b={b},r=3d,ro={ro},o={x[0]}{x[1]}{x[2]}{x[3]}{z[0]}{z[1]}{z[2]}{z[3]},idl=y.stim"
+    modify_error_probabilities(newpath,SI_file_path)
+    modify_x_error_arguments(SI_file_path,SI_file_path)
+    modify_depol1_argument(SI_file_path,SI_file_path)
