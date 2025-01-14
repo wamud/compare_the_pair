@@ -162,31 +162,6 @@ def modify_error_probabilities(file_path, new_file_path):
         file.writelines(modified_lines)
 
 
-# def modify_x_error_arguments(file_path,new_file_path):
-#    # Extract p_value from the file name
-#    match = re.search(r'p=([0-9.]+)', file_path)
-#    if match:
-#        p_value = float(match.group(1))
-#    else:
-#        print("p_value could not be found in the file name.")
-#        return
-#    # Read the lines from the file
-#    with open(file_path, 'r') as file:
-#        lines = file.readlines()
-#    # Function to replace the argument of X_ERROR
-#    def replace_argument(line, new_value):
-#        return re.sub(r'X_ERROR\((.*?)\)', f'X_ERROR({new_value})', line)
-#    # Find lines containing "MR" and modify the argument of X_ERROR
-#    # in the lines immediately before and after
-#    mr_lines = [index for index, line in enumerate(lines) if "MR" in line]
-#    for line_number in mr_lines:
-#        if line_number > 0:  # Check for preceding line
-#            new_value = 5 * p_value
-#            lines[line_number - 1] = replace_argument(lines[line_number - 1], f'{new_value:.3f}')
-#        if line_number < len(lines) - 1:  # Check for succeeding line
-#            new_value = 2 * p_value
-#            lines[line_number + 1] = replace_argument(lines[line_number + 1], f'{new_value:.3f}')
-   # Write the modified lines back to the file or a new file
 
 def modify_x_error_arguments(file_path,new_file_path):
    # Extract p_value from the file name
@@ -217,30 +192,6 @@ def modify_x_error_arguments(file_path,new_file_path):
        file.writelines(lines)
 
 
-
-# def modify_depol1_argument(file_path, new_file_path):
-#    # Extract p_value from the file name
-#    match = re.search(r'p=([0-9.]+)', file_path)
-#    if match:
-#        p_value = float(match.group(1))
-#    else:
-#        raise ValueError("p_value could not be found in the file name.")
-#    # Read the lines from the file
-#    with open(file_path, 'r') as file:
-#        lines = file.readlines()
-#    # Find the line number just before the line that starts with 'REPEAT'
-#    for index, line in enumerate(lines):
-#        if line.startswith('REPEAT') and index > 0:
-#            # Replace the argument of DEPOLARIZE1 in the preceding line
-#            new_argument = 2 * p_value
-#            preceding_line = lines[index - 1]
-#            lines[index - 1] = re.sub(r'DEPOLARIZE1\((.*?)\)', f'DEPOLARIZE1({new_argument})', preceding_line)
-#            break
-
-#    # Write the modified lines back to a new file
-#    with open(new_file_path, 'w') as new_file:
-#        new_file.writelines(lines)
-#    return
 
 def modify_depol1_argument(file_path, new_file_path):
     # Extract p_value from the file name
@@ -287,14 +238,14 @@ def modify_depol1_argument(file_path, new_file_path):
 
 
 
-def add_idling_errors_and_save_circuit(thecircuit, b, d, p, ro, x, z):
+def add_idling_errors_and_save_circuit(thecircuit, b, d, p, ro, x, z,directory):
     ## Add idling errors and save circuit:
     path = f"circuits/temp_circuit.stim" # circuit without idling errors
     thecircuit.to_file(path) #saves circuit as a file
 
     modified_file_contents = process_file(path, p) # adds some idling errors 
     
-    newpath = f"circuits/SD/{b}/d={d},p={p},noise=SD,b={b},r=3d,ro={ro},o={x[0]}{x[1]}{x[2]}{x[3]}{z[0]}{z[1]}{z[2]}{z[3]},idl=y.stim"
+    newpath = f"{directory}/SD/{b}/d={d},p={p},noise=SD,b={b},r=3d,ro={ro},o={x[0]}{x[1]}{x[2]}{x[3]}{z[0]}{z[1]}{z[2]}{z[3]},idl=y.stim"
 
     with open(newpath, 'w') as file:
         file.writelines(modified_file_contents)
@@ -305,12 +256,12 @@ def add_idling_errors_and_save_circuit(thecircuit, b, d, p, ro, x, z):
         os.remove(path)
 
 
-def make_CXSI_circuit(b, d, p, ro, x, z):
+def make_CXSI_circuit(b, d, p, ro, x, z, directory):
     
-    newpath = f"circuits/SD/{b}/d={d},p={p},noise=SD,b={b},r=3d,ro={ro},o={x[0]}{x[1]}{x[2]}{x[3]}{z[0]}{z[1]}{z[2]}{z[3]},idl=y.stim" # needs to be the same as 'newpath' in add_idling_errors_and_save_circuit
+    newpath = f"{directory}/SD/{b}/d={d},p={p},noise=SD,b={b},r=3d,ro={ro},o={x[0]}{x[1]}{x[2]}{x[3]}{z[0]}{z[1]}{z[2]}{z[3]},idl=y.stim" # needs to be the same as 'newpath' in add_idling_errors_and_save_circuit
     
     
-    CXSI_file_path = f"circuits/SI/{b}/d={d},p={p},noise=CXSI,b={b},r=3d,ro={ro},o={x[0]}{x[1]}{x[2]}{x[3]}{z[0]}{z[1]}{z[2]}{z[3]},idl=y.stim"
+    CXSI_file_path = f"{directory}/SI/{b}/d={d},p={p},noise=CXSI,b={b},r=3d,ro={ro},o={x[0]}{x[1]}{x[2]}{x[3]}{z[0]}{z[1]}{z[2]}{z[3]},idl=y.stim"
     modify_error_probabilities(newpath,CXSI_file_path)
     modify_x_error_arguments(CXSI_file_path,CXSI_file_path)
     modify_depol1_argument(CXSI_file_path,CXSI_file_path)
