@@ -245,7 +245,7 @@ def add_idling_errors_and_save_circuit(thecircuit, b, d, p, ro, x, z,directory):
 
     modified_file_contents = process_file(path, p) # adds some idling errors 
     
-    newpath = f"{directory}/SD/{b}/d={d},p={p},noise=SD,b={b},r=3d,ro={ro},o={x[0]}{x[1]}{x[2]}{x[3]}{z[0]}{z[1]}{z[2]}{z[3]},idl=y.stim"
+    newpath = f"{directory}/SD/{b}/d={d},p={p},noise=SI,b={b},r=3d,ro={ro},o={x[0]}{x[1]}{x[2]}{x[3]}{z[0]}{z[1]}{z[2]}{z[3]},idl=y.stim"
 
     with open(newpath, 'w') as file:
         file.writelines(modified_file_contents)
@@ -257,9 +257,10 @@ def add_idling_errors_and_save_circuit(thecircuit, b, d, p, ro, x, z,directory):
 
 
 def make_SI_circuit(b, d, p, ro, x, z, directory):
-    
-    newpath = f"{directory}/SD/{b}/d={d},p={p},noise=SD,b={b},r=3d,ro={ro},o={x[0]}{x[1]}{x[2]}{x[3]}{z[0]}{z[1]}{z[2]}{z[3]},idl=y.stim" # needs to be the same as 'newpath' in add_idling_errors_and_save_circuit
-    
+        
+    newpath = f"{directory}/SD/{b}/d={d},p={p},noise=SD,b={b},r=3d,ro={ro},o={x[0]}{x[1]}{x[2]}{x[3]}{z[0]}{z[1]}{z[2]}{z[3]},idl=y.stim"
+
+
     
     SI_file_path = f"{directory}/SI/{b}/d={d},p={p},noise=SI,b={b},r=3d,ro={ro},o={x[0]}{x[1]}{x[2]}{x[3]}{z[0]}{z[1]}{z[2]}{z[3]},idl=y.stim"
     modify_error_probabilities(newpath,SI_file_path)
