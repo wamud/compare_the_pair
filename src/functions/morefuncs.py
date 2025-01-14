@@ -236,8 +236,6 @@ def modify_depol1_argument(file_path, new_file_path):
 
 
 
-
-
 def add_idling_errors_and_save_circuit(thecircuit, b, d, p, ro, x, z,directory):
     ## Add idling errors and save circuit:
     path = f"circuits/temp_circuit.stim" # circuit without idling errors
@@ -245,7 +243,7 @@ def add_idling_errors_and_save_circuit(thecircuit, b, d, p, ro, x, z,directory):
 
     modified_file_contents = process_file(path, p) # adds some idling errors 
     
-    newpath = f"{directory}/SD/{b}/d={d},p={p},noise=SI,b={b},r=3d,ro={ro},o={x[0]}{x[1]}{x[2]}{x[3]}{z[0]}{z[1]}{z[2]}{z[3]},idl=y.stim"
+    newpath = f"{directory}/SD/{b}/d={d},p={p},noise=SD,b={b},r=3d,ro={ro},o={x[0]}{x[1]}{x[2]}{x[3]}{z[0]}{z[1]}{z[2]}{z[3]},idl=y.stim"
 
     with open(newpath, 'w') as file:
         file.writelines(modified_file_contents)
@@ -258,7 +256,7 @@ def add_idling_errors_and_save_circuit(thecircuit, b, d, p, ro, x, z,directory):
 
 def make_SI_circuit(b, d, p, ro, x, z, directory):
         
-    newpath = f"{directory}/SD/{b}/d={d},p={p},noise=SD,b={b},r=3d,ro={ro},o={x[0]}{x[1]}{x[2]}{x[3]}{z[0]}{z[1]}{z[2]}{z[3]},idl=y.stim"
+    newpath = f"{directory}/SD/{b}/d={d},p={p},noise=SD,b={b},r=3d,ro={ro},o={x[0]}{x[1]}{x[2]}{x[3]}{z[0]}{z[1]}{z[2]}{z[3]},idl=y.stim" # MUST MATCH NEWPATH IN ADD_IDLING_ERRORS_AND_SAVE_CIRCUIT
 
 
     

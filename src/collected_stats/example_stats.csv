@@ -1,2 +1,5 @@
      shots,    errors,  discards, seconds,decoder,strong_id,json_metadata,custom_counts
-       100,         2,         0,   0.173,pymatching,ebe7ede3445c49f2fb3f412f2c329d37c5de1e5a972afec3618ad8372e9a8c30,"{""b"":""z"",""d"":7,""idl"":""y"",""o"":32013021,""p"":0.003,""r"":""3d"",""ro"":""ro""}",
+       100,        18,         0,   0.232,pymatching,6f450dc4e9138ac4f23cb1265eb33a1ce9484c9cfe7008b36f27838572bdc699,"{""b"":""z"",""d"":2,""idl"":""y"",""noise"":""SI"",""o"":10231203,""p"":0.003,""r"":""3d"",""ro"":""unro""}",
+       100,        12,         0,   0.242,pymatching,ad5ec245fdb976d93cf9c064f51abbd6af9640e5f42740c0ef741f54d84dbda4,"{""b"":""z"",""d"":2,""idl"":""y"",""noise"":""SD"",""o"":10231203,""p"":0.003,""r"":""3d"",""ro"":""unro""}",
+       100,        13,         0,   0.249,pymatching,a3d343de15862236f702d86139d8f1c4f0a2fab8bf33927282d25d85d1c6300b,"{""b"":""z"",""d"":2,""idl"":""y"",""noise"":""SD"",""o"":32013021,""p"":0.003,""r"":""3d"",""ro"":""ro""}",
+       100,        17,         0,   0.254,pymatching,8c55a177ad9f688259052c2b6b61ea35c008fce5acdeca6b3f0534d6d64fcebc,"{""b"":""z"",""d"":2,""idl"":""y"",""noise"":""SI"",""o"":32013021,""p"":0.003,""r"":""3d"",""ro"":""ro""}",
