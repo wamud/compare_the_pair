@@ -1,5 +1,5 @@
      shots,    errors,  discards, seconds,decoder,strong_id,json_metadata,custom_counts
-       100,        18,         0,   0.232,pymatching,6f450dc4e9138ac4f23cb1265eb33a1ce9484c9cfe7008b36f27838572bdc699,"{""b"":""z"",""d"":2,""idl"":""y"",""noise"":""SI"",""o"":10231203,""p"":0.003,""r"":""3d"",""ro"":""unro""}",
-       100,        12,         0,   0.242,pymatching,ad5ec245fdb976d93cf9c064f51abbd6af9640e5f42740c0ef741f54d84dbda4,"{""b"":""z"",""d"":2,""idl"":""y"",""noise"":""SD"",""o"":10231203,""p"":0.003,""r"":""3d"",""ro"":""unro""}",
-       100,        13,         0,   0.249,pymatching,a3d343de15862236f702d86139d8f1c4f0a2fab8bf33927282d25d85d1c6300b,"{""b"":""z"",""d"":2,""idl"":""y"",""noise"":""SD"",""o"":32013021,""p"":0.003,""r"":""3d"",""ro"":""ro""}",
-       100,        17,         0,   0.254,pymatching,8c55a177ad9f688259052c2b6b61ea35c008fce5acdeca6b3f0534d6d64fcebc,"{""b"":""z"",""d"":2,""idl"":""y"",""noise"":""SI"",""o"":32013021,""p"":0.003,""r"":""3d"",""ro"":""ro""}",
+       100,        19,         0,   0.212,pymatching,6347116e65b784ccca8c1777dd42b6ef59731bfaee3891dc0625a7aa54a12bd3,"{""b"":""z"",""d"":2,""idl"":""y"",""noise"":""SD"",""o"":10231203,""p"":0.004,""r"":""3d"",""ro"":""unro""}",
+       100,        18,         0,   0.220,pymatching,5964c8758fcc5609702a8cf5d137d60d2ff9d56c1397c85afee51ed778e07545,"{""b"":""z"",""d"":2,""idl"":""y"",""noise"":""SD"",""o"":32013021,""p"":0.004,""r"":""3d"",""ro"":""ro""}",
+       100,        13,         0,   0.215,pymatching,ee429f479e0664e2866c06cf30ce61008102664c0eb03271844335a833abf867,"{""b"":""z"",""d"":2,""idl"":""y"",""noise"":""SI"",""o"":32013021,""p"":0.004,""r"":""3d"",""ro"":""ro""}",
+       100,        22,         0,   0.215,pymatching,49c31d7c198bccd22f50775921625d205be38ce59925d401b7d9c35c0ceede98,"{""b"":""z"",""d"":2,""idl"":""y"",""noise"":""SI"",""o"":10231203,""p"":0.004,""r"":""3d"",""ro"":""unro""}",
