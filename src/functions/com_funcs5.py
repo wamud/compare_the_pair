@@ -1,3 +1,4 @@
+import os
 import random
 import pickle
 import inspect
@@ -146,11 +147,18 @@ def bin_CNOT_orders(mylist):
 
 
 
-def plot_thresholds(mylist, roorder, unroorder, romind = 2, unromind = 2, minp = 0, maxp = 1,  output_dir='plots/thresholds',romaxd = 1000, unromaxd = 1000, find_pL_per = 'd rounds', ylims = [None, None], near_threshold_values = False, ignore_minds = False):
+def remove_files_within_directories(directory):
+    for root, _, files in os.walk(directory):
+        for file in files:
+            os.remove(os.path.join(root,file))
 
-    orders = [unroorder, roorder]
-    maxds = [unromaxd, romaxd]
-    rotations = ['unro', 'ro']
+
+
+def plot_thresholds(mylist, roorder, unroorder, romind = 2, unromind = 2, minp = 0, maxp = 1,  output_dir='plots/thresholds',romaxd = 1000, unromaxd = 1000, find_pL_per = 'd rounds', ylims = [None, None], near_threshold_values = False, ignore_minds = False, noise_model = None):
+
+    orders = [ roorder, unroorder]
+    maxds = [ romaxd, unromaxd]
+    rotations = ['ro', 'unro']
 
 
     for rot, order, maxd in zip(rotations, orders, maxds):
@@ -160,7 +168,7 @@ def plot_thresholds(mylist, roorder, unroorder, romind = 2, unromind = 2, minp =
 
         for mem in 'xz':
             plt.gca().set_prop_cycle(None)  # reset the colour cycle
-            sinterplotthreshold_v2(ax,mylist,order,rot,mem,'3d',find_pL_per,romind, unromind, maxd, minp = minp, maxp = maxp,near_threshold_values = near_threshold_values, ignore_minds = ignore_minds)
+            sinterplotthreshold_v2(ax,mylist,order,rot,mem,'3d',find_pL_per,romind, unromind, maxd, minp = minp, maxp = maxp,near_threshold_values = near_threshold_values, ignore_minds = ignore_minds, noise_model = noise_model)
             ax.set_ylim(ylims[0], ylims[1])
 
         # Get the handles and labels
@@ -193,8 +201,10 @@ def plot_thresholds(mylist, roorder, unroorder, romind = 2, unromind = 2, minp =
         # ax.grid(True, which='both', zorder = 0)
 
 
-    
-        ax.set_title(f'Rotated') if rot == 'ro' else ax.set_title(f'Unrotated')    
+        if noise_model == None:
+            ax.set_title(f'Rotated') if rot == 'ro' else ax.set_title(f'Unrotated')    
+        else:
+            ax.set_title(f'Rotated ({noise_model} noise)') if rot == 'ro' else ax.set_title(f'Unrotated ({noise_model} noise)')    
  
 
         fig.savefig(f'{output_dir}/{rot}{str(order)}_threshold_plot.pdf', format='pdf')
@@ -202,7 +212,7 @@ def plot_thresholds(mylist, roorder, unroorder, romind = 2, unromind = 2, minp =
 
 
 
-def sinterplotthreshold_v2(ax,mylist,order,rot,mem,num_rounds,find_pL_per,romind = 2, unromind = 2, maxd = 100,maxp=1, minp=0, near_threshold_values = False,ignore_minds = False):
+def sinterplotthreshold_v2(ax,mylist,order,rot,mem,num_rounds,find_pL_per,romind = 2, unromind = 2, maxd = 100,maxp=1, minp=0, near_threshold_values = False,ignore_minds = False, noise_model = None):
     # v2 calculates what the start colour for each graph should be based on romind (rotated code, minimum distance) and unromind (unrotated code minimum distance) to make the same colours for the same distances
 
     # sinter.plot_error_rate: https://github.com/quantumlib/Stim/wiki/Sinter-v1.12-Python-API-Reference#sinter.plot_error_rate:
@@ -218,11 +228,13 @@ def sinterplotthreshold_v2(ax,mylist,order,rot,mem,num_rounds,find_pL_per,romind
             ro_ds.append(d)
         if rotation == 'unro' and d not in unro_ds:
             unro_ds.append(d)
-        
-    if romind < min(ro_ds):
-        romind = min(ro_ds)
-    if unromind < min(unro_ds):
-        unromind = min(unro_ds)
+    
+    if len(ro_ds) != 0:
+        if romind < min(ro_ds):
+            romind = min(ro_ds)
+    if len(unro_ds) !=0:
+        if unromind < min(unro_ds):
+            unromind = min(unro_ds)
 
 
     if ignore_minds == True:
@@ -269,6 +281,7 @@ def sinterplotthreshold_v2(ax,mylist,order,rot,mem,num_rounds,find_pL_per,romind
         x_func=lambda stat: stat.json_metadata['p'],
         
         filter_func=lambda s: 
+            (s.json_metadata.get('noise',None)==noise_model if ('noise' in s.json_metadata and noise_model != None) else True) and # if noise model specified in json_metadata make it equal to noise model input
             s.json_metadata['p'] <= maxp and
             s.json_metadata['p'] >= minp and
 
@@ -1741,19 +1754,18 @@ def fit_scaling_and_plot(combined_list, distances, basis, roorder, unroorder, mi
 
 
         if rot == 'unro':
-            if d != 19:  # don't have enough data for this distance
-                
-                if (d%2) == 0:
-                    my_even_list.append(el)
-                    if d not in unro_even_ds:
-                        unro_even_ds.append(d)
-                else:
-                    my_odd_list.append(el)
-                    if d not in unro_odd_ds:
-                        unro_odd_ds.append(d)
-                
-                if d not in unro_combined_ds:
-                    unro_combined_ds.append(d)
+            
+            if (d%2) == 0:
+                my_even_list.append(el)
+                if d not in unro_even_ds:
+                    unro_even_ds.append(d)
+            else:
+                my_odd_list.append(el)
+                if d not in unro_odd_ds:
+                    unro_odd_ds.append(d)
+            
+            if d not in unro_combined_ds:
+                unro_combined_ds.append(d)
 
 
 
