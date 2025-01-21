@@ -1,5 +1,6 @@
 src/plots/
 src/.ipynb_checkpoints/
+src/circuits/supplementary_circuits/example_circuits/
 src/functions/__pycache__/
 .jupyter_ystore.db
 .virtual_documents/

@@ -1837,7 +1837,6 @@ def fit_scaling_and_plot(combined_list, distances, basis, roorder, unroorder, mi
             maxd = min(unromaxd, max(ds))
         
 
-
         print(f"\n{rot} {mem} {order}\n")
         # print(f"mind = {mind}, maxd = {maxd}")
 
@@ -2271,7 +2270,7 @@ def fit_threshold_scaling_and_plot(combined_list, distances, basis, roorder, unr
 
 
 
-    for rot, order, mem in zip(['unro','ro'],[unroorder,roorder],[basis,basis]):
+    for rot, order, mem in zip(['ro','unro'],[roorder,unroorder],[basis,basis]):
 
         if distances == 'even':
             mylist = my_even_list
