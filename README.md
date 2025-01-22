@@ -4,7 +4,7 @@
 
 ### Purpose of the Paper
 While the rotated surface code uses about half the number of qubits as the unrotated surface code to achieve the same distance, it was not known what its qubit-saving ratio was in achieving the same logical error rate, which is more practically relevant. Additionally, the low-logical-error rate scaling of physical to logical error rate had not been found for the surface code using numerical simulations and circuit-level noise. Our paper investigates these questions using Monte Carlo sampling of memory experiments under standard depolarising and superconducting-inspired noise, performed with the stabiliser simulator **[Stim](https://github.com/quantumlib/Stim)**. 
-Our results include
+Our results include:
 - threshold values.
 - physical to logical error rate scaling relationships.
 - qubit counts required to achieve certain logical error rates (including the teraquop regime) and the ratio of qubit counts between the two codes.
