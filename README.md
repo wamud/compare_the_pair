@@ -1,4 +1,4 @@
-# Repository for the paper [Compare the Pair: Rotated vs. Unrotated Surface Codes at Equal Logical Error Rates](https://arxiv.org/abs/2409.14765)
+# Repository for [Compare the Pair: Rotated vs. Unrotated Surface Codes at Equal Logical Error Rates](https://arxiv.org/abs/2409.14765)
 
 ## Overview
 
