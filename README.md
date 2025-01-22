@@ -9,7 +9,7 @@ Overview of this repository's contents:
 - Bash files that were used to generate data for the paper in `src/bash_files`.
 
 ### Purpose of the Paper
-While the rotated surface code uses half the number of qubits as the unrotated surface code to achieve the same distance, it was not known what its qubit-saving ratio was in achieving same logical error rate, which is more practically relevant. Additionally, the low-logical-error rate scaling of physical to logical error rate had not been quantified for the surface code using rigorous numerical simulations and circuit-level noise. Our paper investigates these questions using Monte Carlo sampling of memory experiments performed with the stabilizer simulator **[Stim](https://github.com/quantumlib/Stim)**.
+While the rotated surface code uses half the number of qubits as the unrotated surface code to achieve the same distance, it was not known what its qubit-saving ratio was in achieving the same logical error rate, which is more practically relevant. Additionally, the low-logical-error rate scaling of physical to logical error rate had not been found for the surface code using numerical simulations and circuit-level noise. Our paper investigates these questions using Monte Carlo sampling of memory experiments performed with the stabilizer simulator **[Stim](https://github.com/quantumlib/Stim)**.
 
 ---
 
