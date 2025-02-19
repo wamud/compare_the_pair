@@ -206,8 +206,10 @@ def plot_thresholds(mylist, roorder, unroorder, romind = 2, unromind = 2, minp =
         else:
             ax.set_title(f'Rotated ({noise_model} noise)') if rot == 'ro' else ax.set_title(f'Unrotated ({noise_model} noise)')    
  
-
-        fig.savefig(f'{output_dir}/{rot}{str(order)}_threshold_plot.pdf', format='pdf')
+        if near_threshold_values == False:
+            fig.savefig(f'{output_dir}/{rot}{str(order)}_threshold_plot.pdf', format='pdf')
+        else:
+            fig.savefig(f'{output_dir}/{rot}{str(order)}_threshold_plot_near_pth.pdf', format='pdf')
 
 
 
@@ -618,7 +620,7 @@ def sinterplotpLvQ_overlaid(b,noise,mind,maxd,unroorder,roorder,mylist,num_round
     ax.set_ylim(1e-12,1e0)
     return
 
-
+# NOte, in function below the maxds are hard-coded to paper max d's (unrot 17, rot 22)
 def plot_pL_vs_qubit_count(mylist, b, roorder = 10231203, unroorder = 10231203, ps = None, romind = 2, unromind = 2):
 
     # Plot versus distance or qubits:
@@ -665,11 +667,11 @@ def plot_pL_vs_qubit_count(mylist, b, roorder = 10231203, unroorder = 10231203, 
         if rotation == 'ro':
             minds = [romind for _ in ps]
             # minds = [8 for _ in ps]
-            maxds = [17,22] +  [22 for _ in range(len(ps)-2)]
+            maxds = [22 for _ in range(len(ps))]
         else:
             minds = [unromind for _ in ps]
             # minds = [6 for _ in ps]
-            maxds = [13,17,17] + [17 for _ in range(len(ps)-3)]
+            maxds = [17 for _ in range(len(ps))]
 
         for noise, mind, maxd in zip(ps, minds, maxds):
             pL, _, _, _, _, _, _ = extract4footprint(b, noise, mind, maxd, unroorder, roorder, mylist, num_rounds, find_pL_per)
@@ -1000,15 +1002,15 @@ def extract_data_for_ratios(mylist, b, ps, roorder, unroorder, romind = 2, unrom
             roorder = order
             # minds = [8 for _ in ps]
             minds = [romind for _ in ps]
-            maxds = [17, 18] + [22 for _ in range(len(ps) - 2)]
+            maxds = [1000 for _ in range(len(ps))]
         else:
             unroorder = order
             # minds = [6 for _ in ps]
             minds = [unromind for _ in ps]
-            maxds = [13, 15, 17] + [17 for _ in range(len(ps) - 3)]
+            maxds = [1000 for _ in range(len(ps))]
 
         for i, (noise, mind, maxd) in enumerate(zip(ps, minds, maxds)):
-            distances, qubits, gradients, intercepts, pLs, log_pLs, uncertainties_log_pLs, gradient_errors, intercept_errors = extract4teraquop(
+            distances, qubits, gradients_unused, intercepts_unused, pLs, log_pLs, uncertainties_log_pLs, gradient_errors, intercept_errors = extract4teraquop(
                 b, noise, mind, maxd, unroorder, roorder, mylist, num_rounds, find_pL_per, pL_estimator='MLE'
             )
 
@@ -1142,6 +1144,7 @@ def plot_ratio(mylist, b, roorder, unroorder, romind = 2, unromind = 2, ps = Non
     minpL = 10**(-20)
     maxpL = 10**(-4)
     x = np.logspace(-20, -4, num = 400, base = 10) # these are pL values.
+    # x = np.logspace(-12.0001, -11.9999, num = 2, base = 10) # these are pL values.
 
     limits = []
     Elimits = []
@@ -1169,10 +1172,13 @@ def plot_ratio(mylist, b, roorder, unroorder, romind = 2, unromind = 2, ps = Non
 
         Ey = calc_uncertainty_in_ratio(x, m_ro, b_ro, m_unro, b_unro, Em_ro, Em_unro, Eb_ro, Eb_unro)
 
-        # print(f"p = {ps[i]}, y = {y}, Ey = {Ey}")
-        
-        # for i in range(len(y)):
-            # print(f"{y[i]} ± {Ey[i]}") # Ok .... those uncertainties are way too large lol.
+
+        if ps[i] == 0.001:
+            print(f"p = {ps[i]}")
+            for k in (range(len(y))):
+                if abs(x[k] - 1e-12) < 1e-13:
+                    print(f'At pL = {x[k]:.4g}:')
+                    print(f"ratio = {y[k]:.4g} ± {Ey[k]:.4g}") # Ok .... those uncertainties are way too large lol.
 
         project_below = is_projection_below[i]
         x_dash = x[x < project_below]
@@ -1410,19 +1416,8 @@ def plot_memory_times(mylist, b, roorder, unroorder, ps = None, romind = 2, unro
 
 
 
-
-def plot_teraquop(mylist, b, roorder, unroorder, ps = None,  noise_model = 'SD', romind = 2, unromind = 2, optional_plot = False, teraquop_inset = False):
-
-
-    # # Load the stats:
-    # if noise_model == 'SD':
-    #     ps = [0.0005,0.0007,0.001,0.0015, 0.002, 0.003,0.004,0.005,0.0055]
-    #     with open(f'pickled_stats/SD_combined_importedstats.pickle', 'rb') as file:
-    #         mylist = pickle.load(file)
-    # elif noise_model == 'SI':
-    #     ps = [0.0005,0.001, 0.002, 0.003,0.004,0.005]
-    #     with open(f'pickled_stats/CXSI_importedstats.pickle', 'rb') as file:
-    #         mylist = pickle.load(file)
+# NOte, in function below the maxds are hard-coded to paper max d's (unrot 17, rot 22)
+def plot_teraquop(mylist, b, roorder, unroorder, ps = None,  noise_model = 'SD', romind = 2, unromind = 2, optional_plot = False, teraquop_inset = False, ylims = [None,None]):
 
         
     if ps == None:
@@ -1434,7 +1429,6 @@ def plot_teraquop(mylist, b, roorder, unroorder, ps = None,  noise_model = 'SD',
                 ps.append(p)
 
 
-    
 
     def linear_model(x, m, b):
         return m * x + b
@@ -1444,7 +1438,7 @@ def plot_teraquop(mylist, b, roorder, unroorder, ps = None,  noise_model = 'SD',
     # Specify which stats to plot:
     num_rounds = '3d'
     find_pL_per = 'd rounds'  # Choices are 'round', 'd rounds' or 'shot'
-    rotations = ['unro_1203','ro']
+    rotations = ['unro_1203', 'ro']
 
     pL_estimator = 'MLE'
 
@@ -1466,6 +1460,9 @@ def plot_teraquop(mylist, b, roorder, unroorder, ps = None,  noise_model = 'SD',
     display(Math(r"\text{Memory  }  " + f"{displayb} : {estimator_display}"))
     ## Plot the footprints (pL versus d) with line fits to find and save the teraquop distances:
 
+    print('When p = 0.001:') # running through all p values below but just going to print out the teraquop values at p = 0.001
+
+    ratio = 1
 
     ## Set up arrays to store values:
     d_teras = [[] for _ in rotations] 
@@ -1488,22 +1485,6 @@ def plot_teraquop(mylist, b, roorder, unroorder, ps = None,  noise_model = 'SD',
             ax = axs[j]
         
         rotation = rotations[j]
-        
-
-        # index = 1
-        # unroorder = 10231203 if noise_model == 'SD' else 12031203
-        # if rotation == 'unro_1203':
-        #     rotationtitle = 'Unrot. 1203'
-        #     r = 'unro'
-        #     unroorder = 10231203 if noise_model == 'SD' else 12031203
-        # elif rotation == 'unro_2130':
-        #     rotationtitle = 'Unrot. 2130'
-        #     r = 'unro'
-        #     unroorder = 23102130
-        # else: 
-        #     r = 'ro'
-        #     rotationtitle = 'Rotated'
-        #     index = 0
 
         if 'unro' in rotation:
             rotationtitle = 'Unrotated'
@@ -1538,7 +1519,7 @@ def plot_teraquop(mylist, b, roorder, unroorder, ps = None,  noise_model = 'SD',
         for noise, mind, maxd in zip(ps, minds, maxds):
 
             # GRADIENTS AND INTERCEPTS HERE ARE FITS FOR log10(p_L) = m * d + b 
-            distances, qubits, gradients, intercepts, pL, log_pL, uncertainties_log_pL, gradient_errors, intercept_errors     =     extract4teraquop(b, noise, mind, maxd, unroorder, roorder, mylist, num_rounds, find_pL_per, pL_estimator, plvsd = True)
+            distances, qubits, gradients_unused, intercepts_unused, pL, log_pL, uncertainties_log_pL, gradient_errors, intercept_errors     =     extract4teraquop(b, noise, mind, maxd, unroorder, roorder, mylist, num_rounds, find_pL_per, pL_estimator, plvsd = True)
 
             # LET'S INSTEAD GET GRADIENTS AND INTERCEPTS FOR log10(p_L) = m * rt(q) + b WHERE Q IS QUBIT COUNT
             
@@ -1581,9 +1562,11 @@ def plot_teraquop(mylist, b, roorder, unroorder, ps = None,  noise_model = 'SD',
 
 
             if noise == 0.001:
-                print(rotation)
-                print(q)
-                print(Eq)
+                
+                print(f'q = {q:.6g} ± {Eq:.4g}')
+                
+                ratio = q / ratio
+
 
 
 
@@ -1652,13 +1635,15 @@ def plot_teraquop(mylist, b, roorder, unroorder, ps = None,  noise_model = 'SD',
 
     B = 'Z' if b == 'z' else 'X'
 
-
+    plt.ylim(ylims)
     plt.title(f'Teraquop Qubit Count vs. $p$')
     plt.xscale('log')
     plt.yscale('log')
     plt.xlabel('Physical Error Rate ($p$)')
     plt.legend(loc = 'lower right')
     plt.ylabel('Teraquop qubit count')
+
+    print(f"\nRatio = {ratio:.4g}")
     
 
 
@@ -1687,6 +1672,7 @@ def plot_teraquop(mylist, b, roorder, unroorder, ps = None,  noise_model = 'SD',
         ax_inset.tick_params(axis='both', which='major', labelsize=fontsize)
         ax_inset.tick_params(axis='both', which='minor', labelsize=fontsize)
         ax_inset.set_title(f'Rounded up to next $d$', fontsize=fontsize)
+        ax_inset.set_ylim(ylims)
         plt.savefig(f'plots/teraquops/teraquop_plot_mem_{B}_ro{roorder}_unro{unroorder}.pdf', format='pdf')
         plt.show()
 
